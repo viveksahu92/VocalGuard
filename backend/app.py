@@ -6,14 +6,24 @@ Flask application with OpenAI and ElevenLabs integration
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 import os
+from dotenv import load_dotenv
 from openai import OpenAI
 import requests
 from scam_detector import ScamDetector
 import tempfile
 from datetime import datetime
 
+# Load environment variables
+load_dotenv()
+
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={
+    r"/*": {
+        "origins": "*",
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type"]
+    }
+})
 
 # Initialize OpenAI client
 openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
@@ -24,6 +34,20 @@ scam_detector = ScamDetector()
 # ElevenLabs API configuration
 ELEVENLABS_API_KEY = os.getenv('ELEVENLABS_API_KEY')
 ELEVENLABS_VOICE_ID = os.getenv('ELEVENLABS_VOICE_ID', 'EXAVITQu4vr4xnSDxMaL')  # Default voice
+
+
+@app.route('/', methods=['GET'])
+def index():
+    """Root endpoint"""
+    return jsonify({
+        'app': 'VocalGuard Backend API',
+        'version': '1.0.0',
+        'status': 'running',
+        'endpoints': {
+            '/health': 'GET - Health check',
+            '/analyze': 'POST - Analyze call transcript for scams'
+        }
+    })
 
 
 @app.route('/health', methods=['GET'])

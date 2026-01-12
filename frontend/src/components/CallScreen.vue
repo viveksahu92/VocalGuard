@@ -227,7 +227,14 @@ export default {
       isAnalyzing.value = true
       
       try {
-        const response = await fetch('http://localhost:5000/analyze', {
+        // Detect backend URL - use external URL in production, localhost in development
+        const backendUrl = window.location.hostname === 'localhost' 
+          ? 'http://localhost:5000/analyze'
+          : `https://${window.location.hostname.replace('-3000.', '-5000.')}/analyze`
+        
+        console.log('Calling backend at:', backendUrl)
+        
+        const response = await fetch(backendUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -237,6 +244,8 @@ export default {
             generate_audio: false
           })
         })
+        
+        console.log('Backend response status:', response.status)
         
         const data = await response.json()
         analysisResult.value = data
