@@ -233,9 +233,13 @@ export default {
       stats.value.safeCount = history.filter(c => !c.is_scam).length
       
       if (stats.value.totalCalls > 0) {
-        stats.value.averageRiskScore = Math.round(
-          history.reduce((sum, c) => sum + c.risk_score, 0) / stats.value.totalCalls
-        )
+        const totalScore = history.reduce((sum, c) => {
+          const score = parseFloat(c.risk_score) || 0
+          return sum + score
+        }, 0)
+        stats.value.averageRiskScore = Math.round(totalScore / stats.value.totalCalls)
+      } else {
+        stats.value.averageRiskScore = 0
       }
 
       // Count today's calls
@@ -348,21 +352,25 @@ export default {
 
     const highRiskCount = computed(() => {
       const history = JSON.parse(localStorage.getItem('vocalguard_history') || '[]')
-      return history.filter(c => c.risk_score >= 70).length
+      return history.filter(c => parseFloat(c.risk_score) >= 70).length
     })
 
     const mediumRiskCount = computed(() => {
       const history = JSON.parse(localStorage.getItem('vocalguard_history') || '[]')
-      return history.filter(c => c.risk_score >= 40 && c.risk_score < 70).length
+      return history.filter(c => {
+        const score = parseFloat(c.risk_score)
+        return score >= 40 && score < 70
+      }).length
     })
 
     const lowRiskCount = computed(() => {
       const history = JSON.parse(localStorage.getItem('vocalguard_history') || '[]')
-      return history.filter(c => c.risk_score < 40).length
+      return history.filter(c => parseFloat(c.risk_score) < 40).length
     })
 
     const averageRiskScore = computed(() => {
-      return stats.value.averageRiskScore
+      const val = stats.value.averageRiskScore
+      return isNaN(val) || val === undefined ? 0 : Math.round(val)
     })
 
     const formatThreat = (threat) => {
