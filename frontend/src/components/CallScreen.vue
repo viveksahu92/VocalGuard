@@ -27,9 +27,37 @@
             <p class="text-white text-4xl font-light">{{ callDuration }}</p>
           </div>
 
+          <!-- Advanced Risk Meter -->
+          <div v-if="analysisResult" class="mt-6 mx-auto max-w-xs">
+            <div class="bg-gray-700 rounded-2xl p-4">
+              <div class="flex justify-between items-center mb-2">
+                <span class="text-gray-300 text-sm font-semibold">Risk Score</span>
+                <span :class="[
+                  'text-lg font-bold',
+                  analysisResult.risk_score >= 70 ? 'text-red-400' :
+                  analysisResult.risk_score >= 40 ? 'text-yellow-400' :
+                  'text-green-400'
+                ]">
+                  {{ analysisResult.risk_score || 0 }}/100
+                </span>
+              </div>
+              <div class="w-full bg-gray-600 rounded-full h-3">
+                <div 
+                  :class="[
+                    'h-3 rounded-full transition-all duration-500',
+                    analysisResult.risk_score >= 70 ? 'bg-red-500' :
+                    analysisResult.risk_score >= 40 ? 'bg-yellow-500' :
+                    'bg-green-500'
+                  ]"
+                  :style="{ width: (analysisResult.risk_score || 0) + '%' }"
+                ></div>
+              </div>
+            </div>
+          </div>
+
           <!-- Scam Alert Badge -->
           <div v-if="analysisResult && analysisResult.is_scam" 
-               class="mt-6 mx-auto max-w-xs">
+               class="mt-4 mx-auto max-w-xs">
             <div :class="[
               'p-4 rounded-2xl',
               analysisResult.threat_level === 'HIGH' ? 'bg-red-500/20 border-2 border-red-500' :
@@ -39,13 +67,13 @@
               <p class="text-white font-bold text-lg mb-2">⚠️ SCAM ALERT</p>
               <p class="text-white text-sm">{{ analysisResult.warning_message }}</p>
               <div class="mt-2 text-xs text-gray-300">
-                Confidence: {{ Math.round(analysisResult.confidence * 100) }}%
+                AI Confidence: {{ Math.round(analysisResult.confidence * 100) }}%
               </div>
             </div>
           </div>
 
           <!-- Transcript Section -->
-          <div class="mt-8 bg-gray-700/50 rounded-2xl p-4 max-h-40 overflow-y-auto">
+          <div class="mt-6 bg-gray-700/50 rounded-2xl p-4 max-h-40 overflow-y-auto">
             <div class="flex justify-between items-center mb-2">
               <h3 class="text-white text-sm font-semibold">Transcript</h3>
               <button 
@@ -144,12 +172,19 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 
 export default {
   name: 'CallScreen',
+  props: {
+    selectedScenario: {
+      type: Object,
+      default: null
+    }
+  },
+  emits: ['call-analyzed'],
   
-  setup() {
+  setup(props, { emit }) {
     const currentTime = ref('9:41')
     const callStatus = ref('incoming call...')
     const callerName = ref('Unknown Caller')
@@ -162,6 +197,17 @@ export default {
     
     let durationInterval = null
     let startTime = null
+    
+    // Watch for scenario changes
+    watch(() => props.selectedScenario, (newScenario) => {
+      if (newScenario) {
+        transcript.value = newScenario.transcript
+        callerName.value = newScenario.caller
+        callerNumber.value = newScenario.number
+        analysisResult.value = null
+        callStatus.value = 'VocalGuard Active'
+      }
+    })
 
     // Format transcript based on privacy mode
     const displayTranscript = computed(() => {
@@ -227,17 +273,16 @@ export default {
       isAnalyzing.value = true
       
       try {
-        // Detect backend URL - use external URL in production, localhost in development
-        const backendUrl = window.location.hostname === 'localhost' 
-          ? 'http://localhost:5000/analyze'
-          : `https://${window.location.hostname.replace('-3000.', '-5000.')}/analyze`
+        // Use relative path - Vite proxy will forward to backend
+        const backendUrl = '/api/analyze'
         
-        console.log('Calling backend at:', backendUrl)
+        console.log('📡 Calling backend at:', backendUrl)
         
         const response = await fetch(backendUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Accept': 'application/json'
           },
           body: JSON.stringify({
             transcript: transcript.value,
@@ -245,10 +290,28 @@ export default {
           })
         })
         
-        console.log('Backend response status:', response.status)
+        console.log('✅ Backend response status:', response.status)
+        
+        if (!response.ok) {
+          const errorText = await response.text()
+          throw new Error(`Backend returned status ${response.status}: ${errorText}`)
+        }
         
         const data = await response.json()
+        console.log('📊 Analysis result:', data)
         analysisResult.value = data
+        
+        // Emit call data for history
+        emit('call-analyzed', {
+          transcript: transcript.value,
+          caller: callerName.value,
+          number: callerNumber.value,
+          is_scam: data.is_scam,
+          confidence: data.confidence,
+          threat_level: data.threat_level,
+          detected_threats: data.detected_threats,
+          warning_message: data.warning_message
+        })
         
         // Update call status based on result
         if (data.is_scam) {
@@ -257,8 +320,8 @@ export default {
           callStatus.value = '✓ Legitimate Call'
         }
       } catch (error) {
-        console.error('Analysis failed:', error)
-        alert('Failed to analyze call. Make sure the backend server is running.')
+        console.error('❌ Analysis failed:', error)
+        alert('Failed to analyze call.\n\nError: ' + error.message)
       } finally {
         isAnalyzing.value = false
       }

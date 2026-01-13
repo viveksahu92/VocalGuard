@@ -1,6 +1,6 @@
 """
-VocalGuard Backend API
-Flask application with OpenAI and ElevenLabs integration
+VocalGuard Backend API - Advanced Scam Detection
+Flask application with advanced pattern analysis and database storage
 """
 
 from flask import Flask, request, jsonify, send_file
@@ -10,6 +10,8 @@ from dotenv import load_dotenv
 from openai import OpenAI
 import requests
 from scam_detector import ScamDetector
+from database import VocalGuardDB
+from advanced_detector import AdvancedScamDetector
 import tempfile
 from datetime import datetime
 
@@ -28,8 +30,10 @@ CORS(app, resources={
 # Initialize OpenAI client
 openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
-# Initialize scam detector
+# Initialize scam detectors
 scam_detector = ScamDetector()
+advanced_detector = AdvancedScamDetector()
+db = VocalGuardDB()
 
 # ElevenLabs API configuration
 ELEVENLABS_API_KEY = os.getenv('ELEVENLABS_API_KEY')
@@ -76,49 +80,45 @@ def analyze_call():
         "redacted_transcript": string,
         "detected_pii": list,
         "warning_message": string,
-        "audio_url": string (if generate_audio=true)
+        "risk_score": float (0-100),
+        "insights": object with detailed analysis
     }
     """
     try:
         data = request.json
         transcript = data.get('transcript', '')
+        caller_name = data.get('caller_name', 'Unknown')
+        caller_number = data.get('caller_number', 'Unknown')
         generate_audio = data.get('generate_audio', False)
         
         if not transcript:
             return jsonify({'error': 'Transcript is required'}), 400
         
-        # Step 1: Detect and redact PII
+        # Step 1: Detect language
+        detected_language = advanced_detector.detect_language(transcript)
+        
+        # Step 2: Advanced risk analysis
+        risk_score, detected_patterns, threat_level = advanced_detector.calculate_risk_score(transcript)
+        
+        # Step 3: Detect and redact PII
         redacted_result = scam_detector.redact_pii(transcript)
         redacted_transcript = redacted_result['redacted_text']
         detected_pii = redacted_result['pii_found']
         
-        # Step 2: Analyze transcript with OpenAI for scam detection
-        scam_analysis = analyze_with_openai(transcript)
+        # Step 4: Generate insights
+        insights = advanced_detector.generate_insights(transcript, risk_score, threat_level)
         
-        # Step 3: Flag threats using local detection
-        threat_analysis = scam_detector.flag_threats(transcript)
-        
-        # Combine analyses
-        is_scam = scam_analysis['is_scam'] or threat_analysis['is_threat']
-        confidence = max(scam_analysis['confidence'], threat_analysis['confidence'])
-        
-        # Determine threat level
-        if confidence >= 0.8:
-            threat_level = 'HIGH'
-        elif confidence >= 0.5:
-            threat_level = 'MEDIUM'
-        else:
-            threat_level = 'LOW'
-        
-        # Combine detected threats
-        all_threats = list(set(scam_analysis['threats'] + threat_analysis['detected_patterns']))
+        # Step 5: Determine if scam based on risk score
+        is_scam = risk_score >= 40
+        confidence = risk_score / 100.0
         
         # Generate warning message
-        warning_message = generate_warning_message(is_scam, threat_level, all_threats)
+        warning_message = generate_warning_message(is_scam, threat_level, detected_patterns)
         
         result = {
             'is_scam': is_scam,
             'confidence': confidence,
+            'risk_score': round(risk_score, 2),
             'threat_level': threat_level,
             'detected_threats': all_threats,
             'redacted_transcript': redacted_transcript,
@@ -269,6 +269,94 @@ def serve_audio(filename):
         
         return jsonify({'error': 'Audio file not found'}), 404
         
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/statistics', methods=['GET'])
+def get_statistics():
+    """Get overall statistics from database"""
+    try:
+        stats = db.get_statistics()
+        return jsonify(stats)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/calls/history', methods=['GET'])
+def get_call_history():
+    """Get call history from database"""
+    try:
+        limit = request.args.get('limit', 50, type=int)
+        calls = db.get_all_calls(limit=limit)
+        return jsonify({'calls': calls, 'total': len(calls)})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/calls/search', methods=['POST'])
+def search_calls():
+    """Search calls in database"""
+    try:
+        data = request.json
+        query = data.get('query', '')
+        
+        if not query:
+            return jsonify({'error': 'Search query required'}), 400
+        
+        calls = db.search_calls(query)
+        return jsonify({'calls': calls, 'total': len(calls)})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/report/generate', methods=['POST'])
+def generate_report():
+    """Generate a detailed report for a call"""
+    try:
+        data = request.json
+        call_id = data.get('call_id')
+        
+        if not call_id:
+            return jsonify({'error': 'Call ID required'}), 400
+        
+        # Get call data
+        calls = db.get_all_calls(limit=999)
+        call = next((c for c in calls if c['id'] == call_id), None)
+        
+        if not call:
+            return jsonify({'error': 'Call not found'}), 404
+        
+        # Generate comprehensive report
+        report = {
+            'call_id': call['id'],
+            'timestamp': call['timestamp'],
+            'caller_info': {
+                'name': call['caller_name'],
+                'number': call['caller_number'],
+                'duration': call['duration']
+            },
+            'analysis': {
+                'is_scam': call['is_scam'],
+                'confidence': call['confidence'],
+                'threat_level': call['threat_level'],
+                'detected_threats': call['detected_threats'],
+                'risk_indicators': call['warning_message']
+            },
+            'protection': {
+                'pii_detected': call['detected_pii'],
+                'redacted_transcript': call['redacted_transcript'],
+                'recommended_action': 'Block number and report to FTC' if call['is_scam'] else 'No action needed'
+            },
+            'tips': [
+                'Never share personal information over the phone',
+                'Verify caller identity independently',
+                'Hang up and call official numbers',
+                'Report suspicious calls to authorities'
+            ]
+        }
+        
+        return jsonify(report)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
