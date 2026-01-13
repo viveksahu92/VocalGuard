@@ -120,10 +120,12 @@ def analyze_call():
             'confidence': confidence,
             'risk_score': round(risk_score, 2),
             'threat_level': threat_level,
-            'detected_threats': all_threats,
+            'detected_threats': detected_patterns,
             'redacted_transcript': redacted_transcript,
             'detected_pii': detected_pii,
-            'warning_message': warning_message
+            'warning_message': warning_message,
+            'detected_language': detected_language,
+            'insights': insights
         }
         
         # Step 4: Generate audio warning if requested
