@@ -16,13 +16,13 @@ class ScamDetector:
     def __init__(self):
         # PII patterns
         self.pii_patterns = {
-            'credit_card': r'\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b',
-            'ssn': r'\b\d{3}[-\s]?\d{2}[-\s]?\d{4}\b',
-            'phone': r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b',
-            'email': r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
-            'zip_code': r'\b\d{5}(?:-\d{4})?\b',
-            'bank_account': r'\b\d{8,17}\b',
-            'cvv': r'\b\d{3,4}\b'
+            'credit_card': r'\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}',
+            'ssn': r'\d{3}[-\s]?\d{2}[-\s]?\d{4}',
+            'phone': r'\d{3}[-.]?\d{3}[-.]?\d{4}',
+            'email': r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}',
+            'zip_code': r'\d{5}(?:-\d{4})?',
+            'bank_account': r'\d{8,17}',
+            'cvv': r'\d{3,4}'
         }
         
         # EXPANDED Multi-language scam keywords (English + transliterated common scams)
@@ -35,7 +35,7 @@ class ScamDetector:
                 # Spanish
                 'inmediatamente', 'urgente', 'emergencia', 'ahora mismo',
                 # French
-                'immédiatement', 'urgent', 'maintenant',
+                'immÃ©diatement', 'urgent', 'maintenant',
                 # German
                 'sofort', 'dringend', 'notfall',
                 # Hindi/Indian
@@ -136,7 +136,7 @@ class ScamDetector:
         self.behavioral_patterns = {
             'excessive_urgency': ['now', 'immediately', 'today', 'urgent'],
             'pressure_tactics': ['only', 'limited', 'last', 'final'],
-            'secrecy_requests': ['don\'t tell', 'keep secret', 'between us', 'confidential'],
+            'secrecy_requests': ["don't tell", 'keep secret', 'between us', 'confidential'],
             'payment_urgency': ['pay now', 'send immediately', 'right away'],
             'verification_bypass': ['no need to verify', 'trust me', 'skip verification']
         }
@@ -297,7 +297,7 @@ class ScamDetector:
             score += 0.1
         
         # Check for ALL CAPS words (pressure tactic)
-        caps_words = re.findall(r'\b[A-Z]{4,}\b', text)
+        caps_words = re.findall(r'[A-Z]{4,}', text)
         if len(caps_words) >= 2:
             score += 0.15
         
@@ -342,15 +342,15 @@ class ScamDetector:
         Simple language detection based on character patterns
         """
         # Check for non-English characters
-        if re.search(r'[à-ÿ]', text):
+        if re.search(r'[Ã -Ã¿]', text):
             return 'French/Spanish/German'
-        elif re.search(r'[а-яА-Я]', text):
+        elif re.search(r'[Ð°-ÑÐ-Ð¯]', text):
             return 'Russian/Cyrillic'
-        elif re.search(r'[\u4e00-\u9fff]', text):
+        elif re.search(r'[一-鿿]', text):
             return 'Chinese'
-        elif re.search(r'[\u0600-\u06ff]', text):
+        elif re.search(r'[؀-ۿ]', text):
             return 'Arabic'
-        elif re.search(r'[\u0900-\u097f]', text):
+        elif re.search(r'[ऀ-ॿ]', text):
             return 'Hindi/Devanagari'
         else:
             return 'English/Latin'
@@ -371,3 +371,4 @@ class ScamDetector:
         
         # Replace all number sequences with asterisks
         return re.sub(r'\d', '*', text)
+

@@ -191,3 +191,4 @@ class VocalGuardDB:
         
         conn.close()
         return calls
+

@@ -21,6 +21,24 @@
           </div>
           <h2 class="text-white text-3xl font-light mb-1">{{ callerName }}</h2>
           <p class="text-gray-400 text-lg">{{ callerNumber }}</p>
+          
+          <!-- FEATURE 11: Caller Reputation Badge -->
+          <div v-if="analysisResult && analysisResult.caller_reputation" class="mt-2">
+            <span :class="[
+              'text-xs px-3 py-1 rounded-full font-semibold',
+              analysisResult.caller_reputation.trust_level === 'KNOWN SCAMMER' ? 'bg-red-600 text-white' :
+              analysisResult.caller_reputation.trust_level === 'HIGH RISK' ? 'bg-red-500/30 text-red-300 border border-red-500' :
+              analysisResult.caller_reputation.trust_level === 'SUSPICIOUS' ? 'bg-yellow-500/30 text-yellow-300 border border-yellow-500' :
+              analysisResult.caller_reputation.trust_level === 'VERIFIED LEGITIMATE' ? 'bg-green-600 text-white' :
+              'bg-gray-600 text-gray-300'
+            ]">
+              {{ analysisResult.caller_reputation.is_known_scammer ? '🚫 KNOWN SCAMMER' : 
+                 analysisResult.caller_reputation.trust_level }}
+              <span v-if="analysisResult.caller_reputation.community_reports > 0" class="ml-1">
+                ({{ analysisResult.caller_reputation.community_reports }} reports)
+              </span>
+            </span>
+          </div>
 
           <!-- Call Duration -->
           <div class="mt-8">
@@ -55,7 +73,16 @@
             </div>
           </div>
 
-          <!-- Scam Alert Badge -->
+ <!-- FEATURE 10: Auto-Disconnect Warning -->
+          <div v-if="analysisResult && analysisResult.auto_disconnect_recommended" 
+               class="mt-4 mx-auto max-w-xs">
+            <div class="bg-red-600 border-4 border-red-400 rounded-2xl p-4 animate-pulse">
+              <p class="text-white font-bold text-xl mb-1">🚨 AUTO-DISCONNECT RECOMMENDED</p>
+              <p class="text-white text-sm">Extremely high risk detected. Hanging up now...</p>
+            </div>
+          </div>
+
+          <!-- Scam Alert Badge with Category -->
           <div v-if="analysisResult && analysisResult.is_scam" 
                class="mt-4 mx-auto max-w-xs">
             <div :class="[
@@ -65,9 +92,32 @@
               'bg-orange-500/20 border-2 border-orange-500'
             ]">
               <p class="text-white font-bold text-lg mb-2">⚠️ SCAM ALERT</p>
+              <!-- FEATURE 8: Scam Category Display -->
+              <p v-if="analysisResult.scam_category" class="text-red-300 text-xs font-semibold mb-2">
+                Category: {{ analysisResult.scam_category }}
+              </p>
               <p class="text-white text-sm">{{ analysisResult.warning_message }}</p>
               <div class="mt-2 text-xs text-gray-300">
                 AI Confidence: {{ Math.round(analysisResult.confidence * 100) }}%
+              </div>
+            </div>
+          </div>
+          
+          <!-- FEATURE 2 & 6: Voice Analysis & Spoofing Detection -->
+          <div v-if="analysisResult && (analysisResult.voice_analysis || analysisResult.spoofing_analysis)" 
+               class="mt-3 mx-auto max-w-xs">
+            <div class="bg-gray-700/50 rounded-xl p-3 space-y-2">
+              <div v-if="analysisResult.voice_analysis" class="text-xs">
+                <p class="text-gray-400 font-semibold mb-1">Voice Analysis:</p>
+                <p class="text-white">{{ analysisResult.voice_analysis.summary }}</p>
+                <div v-if="analysisResult.voice_analysis.robocall" class="mt-1 text-red-300">
+                  🤖 Robocall Detected
+                </div>
+              </div>
+              <div v-if="analysisResult.spoofing_analysis && analysisResult.spoofing_analysis.spoofing_detected" 
+                   class="text-xs">
+                <p class="text-yellow-400 font-semibold">⚡ {{ analysisResult.spoofing_analysis.verdict }}</p>
+                <p class="text-gray-300">{{ analysisResult.spoofing_analysis.recommendation }}</p>
               </div>
             </div>
           </div>
@@ -134,6 +184,16 @@
                 </svg>
               </div>
               <span class="text-xs">speaker</span>
+            </button>
+          </div>
+
+          <!-- FEATURE 15: Report & Block Actions -->
+          <div v-if="analysisResult && analysisResult.is_scam" class="flex gap-2 mb-4">
+            <button 
+              @click="reportAndBlock"
+              class="flex-1 bg-orange-600 hover:bg-orange-700 text-white py-2 px-4 rounded-full font-semibold text-sm transition"
+            >
+              🚫 Report & Block
             </button>
           </div>
 
@@ -259,13 +319,57 @@ export default {
     }
 
     // End call
+    // Report and block scammer
+    const reportAndBlock = async () => {
+      if (!analysisResult.value) return
+      
+      try {
+        // Report to community database
+        const reportResponse = await fetch('/api/report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phone_number: callerNumber.value,
+            description: `Scam call detected: ${analysisResult.value.scam_category}`,
+            risk_score: analysisResult.value.risk_score,
+            scam_category: analysisResult.value.scam_category
+          })
+        })
+        
+        // Block number
+        const blockResponse = await fetch('/api/block', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phone_number: callerNumber.value,
+            reason: 'Scam reported by user'
+          })
+        })
+        
+        if (reportResponse.ok && blockResponse.ok) {
+          alert('✅ Scammer reported and blocked successfully!\nThank you for protecting the community.')
+          endCall()
+        }
+      } catch (error) {
+        console.error('Report/block error:', error)
+        alert('Failed to report scammer')
+      }
+    }
+
     const endCall = () => {
       if (durationInterval) {
         clearInterval(durationInterval)
       }
       callStatus.value = 'Call Ended'
-      // In a real app, this would navigate away or close the screen
-      alert('Call ended. VocalGuard analysis ' + (analysisResult.value?.is_scam ? 'detected a scam!' : 'found no threats.'))
+      
+      // Auto-disconnect if recommended
+      if (analysisResult.value?.auto_disconnect_recommended) {
+        alert('🚨 Call automatically disconnected due to extremely high scam risk!\n\nRisk Score: ' + 
+              analysisResult.value.risk_score + '/100')
+      } else {
+        alert('Call ended. VocalGuard analysis ' + 
+              (analysisResult.value?.is_scam ? 'detected a scam!' : 'found no threats.'))
+      }
     }
 
     // Analyze call
@@ -352,6 +456,7 @@ export default {
       displayTranscript,
       togglePrivacy,
       formatThreat,
+      reportAndBlock,
       endCall,
       analyzeCall
     }

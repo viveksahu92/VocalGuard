@@ -12,11 +12,18 @@ import requests
 from scam_detector import ScamDetector
 from database import VocalGuardDB
 from advanced_detector import AdvancedScamDetector
+from voice_analyzer import VoiceAnalyzer
+from caller_intelligence import CallerIntelligence
+from spoofing_detector import SpoofingDetector
+from threat_intelligence import ThreatIntelligence
 import tempfile
 from datetime import datetime
 
-# Load environment variables
-load_dotenv()
+# Load environment variables (optional)
+try:
+    load_dotenv()
+except:
+    pass
 
 app = Flask(__name__)
 CORS(app, resources={
@@ -27,12 +34,19 @@ CORS(app, resources={
     }
 })
 
-# Initialize OpenAI client
-openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+# Initialize OpenAI client (optional)
+try:
+    openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+except:
+    openai_client = None
 
-# Initialize scam detectors
+# Initialize scam detectors and new modules
 scam_detector = ScamDetector()
 advanced_detector = AdvancedScamDetector()
+voice_analyzer = VoiceAnalyzer()
+caller_intelligence = CallerIntelligence()
+spoofing_detector = SpoofingDetector()
+threat_intelligence = ThreatIntelligence()
 db = VocalGuardDB()
 
 # ElevenLabs API configuration
@@ -63,26 +77,23 @@ def health_check():
 @app.route('/analyze', methods=['POST'])
 def analyze_call():
     """
-    Analyze call transcript for scam detection
+    ENHANCED v2.0: Analyze call transcript with ALL NEW FEATURES
     
     Expected JSON payload:
     {
         "transcript": "Call transcript text",
+        "caller_name": "Caller name",
+        "caller_number": "Phone number",
         "generate_audio": true/false (optional)
     }
     
-    Returns:
-    {
-        "is_scam": boolean,
-        "confidence": float,
-        "threat_level": string,
-        "detected_threats": list,
-        "redacted_transcript": string,
-        "detected_pii": list,
-        "warning_message": string,
-        "risk_score": float (0-100),
-        "insights": object with detailed analysis
-    }
+    Returns comprehensive analysis including:
+    - Dynamic risk scoring
+    - Voice pattern analysis
+    - Caller reputation
+    - Spoofing detection
+    - Threat intelligence matching
+    - Auto-disconnect recommendation
     """
     try:
         data = request.json
@@ -90,45 +101,125 @@ def analyze_call():
         caller_name = data.get('caller_name', 'Unknown')
         caller_number = data.get('caller_number', 'Unknown')
         generate_audio = data.get('generate_audio', False)
+        call_time = datetime.now().isoformat()
         
         if not transcript:
             return jsonify({'error': 'Transcript is required'}), 400
         
-        # Step 1: Detect language
-        detected_language = advanced_detector.detect_language(transcript)
+        # === FEATURE 1: Dynamic Risk Scoring ===
+        risk_score, detected_patterns, threat_level = advanced_detector.calculate_risk_score(
+            transcript, caller_number, call_time
+        )
         
-        # Step 2: Advanced risk analysis
-        risk_score, detected_patterns, threat_level = advanced_detector.calculate_risk_score(transcript)
+        # === FEATURE 2: Voice Pattern Analysis ===
+        voice_analysis = voice_analyzer.comprehensive_voice_analysis(transcript)
+        risk_score += voice_analysis['total_voice_risk_score']
         
-        # Step 3: Detect and redact PII
+        # === FEATURE 3: Caller Reputation Check ===
+        reputation_data = caller_intelligence.check_number_reputation(caller_number)
+        risk_score += reputation_data['risk_modifier']
+        
+        # === FEATURE 4: Threat Intelligence Matching ===
+        threat_match = threat_intelligence.match_emerging_patterns(transcript)
+        risk_score += threat_match['total_emerging_threat_risk']
+        
+        # === FEATURE 5 & 6: Robocall & Spoofing Detection ===
+        spoofing_analysis = spoofing_detector.calculate_spoofing_probability(
+            caller_number, caller_name
+        )
+        risk_score += spoofing_analysis['total_spoofing_risk_score']
+        
+        # === FEATURE 7: Time-based assessment (already in calculate_risk_score) ===
+        
+        # === FEATURE 8: Industry-specific detection ===
+        scam_category = detect_scam_category(detected_patterns, transcript)
+        
+        # Cap final risk score at 100
+        risk_score = min(risk_score, 100)
+        
+        # Redetermine threat level with enhanced score
+        if risk_score >= 70:
+            threat_level = 'HIGH'
+        elif risk_score >= 40:
+            threat_level = 'MEDIUM'
+        else:
+            threat_level = 'LOW'
+        
+        # === Standard PII detection ===
         redacted_result = scam_detector.redact_pii(transcript)
         redacted_transcript = redacted_result['redacted_text']
         detected_pii = redacted_result['pii_found']
         
-        # Step 4: Generate insights
+        # === Language detection ===
+        detected_language = advanced_detector.detect_language(transcript)
+        
+        # === Generate insights ===
         insights = advanced_detector.generate_insights(transcript, risk_score, threat_level)
         
-        # Step 5: Determine if scam based on risk score
+        # === Determine if scam ===
         is_scam = risk_score >= 40
         confidence = risk_score / 100.0
         
         # Generate warning message
         warning_message = generate_warning_message(is_scam, threat_level, detected_patterns)
         
+        # === FEATURE 10: Auto-disconnect recommendation ===
+        auto_disconnect_recommended = risk_score >= 75
+        
+        # Prepare comprehensive result
         result = {
             'is_scam': is_scam,
-            'confidence': confidence,
+            'confidence': round(confidence, 2),
             'risk_score': round(risk_score, 2),
             'threat_level': threat_level,
             'detected_threats': detected_patterns,
+            'scam_category': scam_category,
             'redacted_transcript': redacted_transcript,
             'detected_pii': detected_pii,
             'warning_message': warning_message,
             'detected_language': detected_language,
-            'insights': insights
+            'insights': insights,
+            
+            # NEW: Enhanced data
+            'voice_analysis': {
+                'summary': voice_analysis['analysis_summary'],
+                'rapid_speech': voice_analysis['speech_patterns']['rapid_speech_detected'],
+                'robocall': voice_analysis['robocall_detection']['robocall_detected'],
+                'emotional_manipulation': voice_analysis['emotional_manipulation']['emotion_manipulation_detected'],
+                'dominant_emotion': voice_analysis['emotional_manipulation']['dominant_emotion'],
+                'call_center_detected': voice_analysis['background_environment']['call_center_detected']
+            },
+            
+            'caller_reputation': {
+                'trust_level': reputation_data['trust_level'],
+                'reputation_score': reputation_data['reputation_score'],
+                'is_known_scammer': reputation_data['is_verified_scammer'],
+                'community_reports': reputation_data['community_reports'],
+                'recommendation': reputation_data['recommendation']
+            },
+            
+            'spoofing_analysis': {
+                'spoofing_detected': spoofing_analysis['spoofing_probability'] > 0.4,
+                'spoofing_probability': spoofing_analysis['spoofing_probability'],
+                'verdict': spoofing_analysis['verdict'],
+                'recommendation': spoofing_analysis['recommendation']
+            },
+            
+            'threat_intelligence': {
+                'emerging_threats_matched': threat_match['threat_count'],
+                'matched_threats': threat_match['matched_threats']
+            },
+            
+            'auto_disconnect_recommended': auto_disconnect_recommended
         }
         
-        # Step 4: Generate audio warning if requested
+        # Update caller reputation in database
+        caller_intelligence.update_reputation_score(caller_number, is_scam, risk_score, scam_category)
+        
+        # Track call pattern
+        caller_intelligence.track_call_pattern(caller_number)
+        
+        # Generate audio warning if requested
         if generate_audio and is_scam:
             audio_url = generate_audio_warning(warning_message)
             result['audio_url'] = audio_url
@@ -136,7 +227,41 @@ def analyze_call():
         return jsonify(result)
         
     except Exception as e:
+        import traceback
+        print(f"Analysis error: {e}")
+        print(traceback.format_exc())
         return jsonify({'error': str(e)}), 500
+
+
+def detect_scam_category(patterns: list, transcript: str) -> str:
+    """
+    FEATURE 8: Detect industry-specific scam category
+    """
+    transcript_lower = transcript.lower()
+    
+    # Check for various scam categories
+    if any(p in patterns for p in ['impersonation']) and any(word in transcript_lower for word in ['irs', 'tax', 'refund']):
+        return 'IRS/Tax Scam'
+    elif any(word in transcript_lower for word in ['microsoft', 'apple', 'computer', 'virus', 'tech support']):
+        return 'Tech Support Scam'
+    elif any(word in transcript_lower for word in ['bank', 'credit card', 'account', 'fraud department']):
+        return 'Banking/Financial Scam'
+    elif any(word in transcript_lower for word in ['social security', 'ssa', 'benefits']):
+        return 'Social Security Scam'
+    elif any(word in transcript_lower for word in ['lottery', 'prize', 'winner', 'congratulations']):
+        return 'Prize/Lottery Scam'
+    elif any(word in transcript_lower for word in ['invest', 'crypto', 'bitcoin', 'returns']):
+        return 'Investment Scam'
+    elif any(word in transcript_lower for word in ['electric', 'power', 'utility', 'water', 'gas']):
+        return 'Utility Scam'
+    elif any(word in transcript_lower for word in ['package', 'delivery', 'shipping', 'customs']):
+        return 'Delivery Scam'
+    elif any(word in transcript_lower for word in ['medicare', 'medicaid', 'health insurance']):
+        return 'Healthcare Scam'
+    elif 'romance' in patterns:
+        return 'Romance Scam'
+    else:
+        return 'General Scam'
 
 
 def analyze_with_openai(transcript):
@@ -208,11 +333,11 @@ def generate_warning_message(is_scam, threat_level, threats):
     threat_list = [threat_descriptions.get(t, t) for t in threats[:3]]
     
     if threat_level == 'HIGH':
-        return f"⚠️ HIGH RISK SCAM DETECTED! This call shows multiple red flags: {', '.join(threat_list)}. DO NOT share personal information or make payments."
+        return f"â ï¸ HIGH RISK SCAM DETECTED! This call shows multiple red flags: {', '.join(threat_list)}. DO NOT share personal information or make payments."
     elif threat_level == 'MEDIUM':
-        return f"⚠️ Potential scam detected: {', '.join(threat_list)}. Exercise caution and verify the caller's identity."
+        return f"â ï¸ Potential scam detected: {', '.join(threat_list)}. Exercise caution and verify the caller's identity."
     else:
-        return f"⚠️ Some suspicious elements detected: {', '.join(threat_list)}. Stay vigilant."
+        return f"â ï¸ Some suspicious elements detected: {', '.join(threat_list)}. Stay vigilant."
 
 
 def generate_audio_warning(warning_text):
@@ -363,7 +488,67 @@ def generate_report():
         return jsonify({'error': str(e)}), 500
 
 
+# === NEW API ENDPOINTS ===
+
+@app.route('/api/report', methods=['POST'])
+def report_scam():
+    """Community scam reporting"""
+    try:
+        data = request.json
+        phone_number = data.get('phone_number')
+        description = data.get('description', 'Scam call reported')
+        risk_score = data.get('risk_score', 75)
+        scam_category = data.get('scam_category', 'General Scam')
+        
+        if not phone_number:
+            return jsonify({'error': 'Phone number is required'}), 400
+        
+        report_id = caller_intelligence.report_scam(
+            phone_number, description, risk_score, scam_category
+        )
+        
+        return jsonify({
+            'success': True,
+            'report_id': report_id,
+            'message': 'Scam reported successfully'
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/block', methods=['POST'])
+def block_number():
+    """Block a phone number"""
+    try:
+        data = request.json
+        phone_number = data.get('phone_number')
+        reason = data.get('reason', 'User blocked')
+        
+        if not phone_number:
+            return jsonify({'error': 'Phone number is required'}), 400
+        
+        success = caller_intelligence.block_number(phone_number, reason)
+        
+        return jsonify({
+            'success': success,
+            'message': f'Number {phone_number} blocked successfully' if success else 'Number already blocked'
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/reputation/<phone_number>', methods=['GET'])
+def check_reputation_api(phone_number):
+    """Check caller reputation"""
+    try:
+        reputation = caller_intelligence.check_number_reputation(phone_number)
+        return jsonify({'success': True,' reputation': reputation})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
     debug = os.getenv('FLASK_ENV') == 'development'
     app.run(host='0.0.0.0', port=port, debug=debug)
+

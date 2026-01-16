@@ -230,16 +230,19 @@ export default {
     let durationInterval = null
     let startTime = null
     
-    // Watch for scenario changes
+    // Watch for scenario changes - with immediate and deep options
     watch(() => props.selectedScenario, (newScenario) => {
+      console.log('📡 Scenario changed:', newScenario)
       if (newScenario) {
+        console.log('✅ Updating transcript to:', newScenario.name)
         transcript.value = newScenario.transcript
         callerName.value = newScenario.caller
         callerNumber.value = newScenario.number
         analysisResult.value = null
         callStatus.value = 'VocalGuard Active'
+        console.log('✅ Transcript updated successfully')
       }
-    })
+    }, { immediate: true, deep: true })
 
     // Format transcript based on privacy mode
     const displayTranscript = computed(() => {

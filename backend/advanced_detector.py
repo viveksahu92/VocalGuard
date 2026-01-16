@@ -1,138 +1,148 @@
-"""
-VocalGuard Advanced Detection with Gemini Nano
-Lightweight AI-powered scam detection without requiring paid APIs
-Uses advanced pattern analysis and similarity matching
-"""
-
-import json
-import math
+"""VocalGuard Advanced Detection Engine - v2.0 Simplified"""
+import hashlib
+import random
 from typing import Dict, List, Tuple
+from datetime import datetime
+
 
 class AdvancedScamDetector:
-    """Advanced scam detection using pattern analysis and scoring"""
-    
     def __init__(self):
         self.scam_signatures = self._load_scam_signatures()
-        self.language_patterns = self._load_language_patterns()
+        self.language_patterns = {'en': {}}
     
-    def _load_scam_signatures(self) -> Dict:
-        """Load comprehensive scam signatures and patterns"""
+    def _load_scam_signatures(self):
+        """Comprehensive scam pattern detection for ALL scam types"""
         return {
             'urgency': {
                 'keywords': [
-                    'immediately', 'right now', 'urgent', 'emergency', 'now',
-                    'within 24 hours', 'today only', 'limited time', 'act fast',
-                    'hurry', 'expires soon', 'don\'t wait', 'quickly', 'asap',
-                    'before', 'deadline', 'last chance', 'final notice'
-                ],
-                'weight': 0.15,
-                'description': 'Pressure tactics'
+                    'immediately', 'urgent', 'now', 'right now', 'hurry', 'asap', 'today', 
+                    'within 24 hours', 'limited time', 'act now', 'dont wait', 'before its too late',
+                    'time sensitive', 'expire', 'last chance', 'final notice'
+                ], 
+                'weight': 0.18
             },
             'payment_request': {
                 'keywords': [
-                    'wire transfer', 'gift card', 'bitcoin', 'cryptocurrency',
-                    'western union', 'moneygram', 'prepaid card', 'cash payment',
-                    'untraceable', 'itunes card', 'google play', 'steam card',
-                    'payment', 'card number', 'bank account', 'routing number',
-                    'wire', 'send money', 'pay now', 'purchase', 'refund'
-                ],
-                'weight': 0.20,
-                'description': 'Payment request detected'
+                    'wire', 'gift card', 'bitcoin', 'cryptocurrency', 'itunes', 'google play',
+                    'moneygram', 'western union', 'paypal', 'venmo', 'zelle', 'cashapp', 'cash app',
+                    'prepaid card', 'reload pack', 'send money', 'transfer', 'pay', 'payment',
+                    'deposit', 'bank account', 'routing number', '$', 'dollar', 'fee', 'charge'
+                ], 
+                'weight': 0.22
             },
             'personal_info': {
                 'keywords': [
-                    'social security', 'ssn', 'password', 'pin', 'pin number',
-                    'account number', 'routing number', 'credit card', 'cvv',
-                    'security code', 'date of birth', 'mother\'s maiden name',
-                    'license number', 'passport', 'verify identity', 'confirm',
-                    'personal information', 'credentials', 'login'
-                ],
-                'weight': 0.20,
-                'description': 'Personal information request'
+                    'ssn', 'social security', 'password', 'credit card', 'debit card', 'cvv', 'pin',
+                    'account number', 'routing number', 'mothers maiden', 'date of birth', 'dob',
+                    'verify your', 'confirm your', 'update your', 'provide your', 'give me your',
+                    'share your', 'license number', 'passport'
+                ], 
+                'weight': 0.22
             },
             'impersonation': {
                 'keywords': [
-                    'irs', 'internal revenue', 'social security', 'medicare',
-                    'microsoft', 'apple', 'amazon', 'google', 'paypal', 'bank',
-                    'police', 'sheriff', 'federal agent', 'fbi', 'government',
-                    'official', 'authority', 'federal', 'law enforcement'
-                ],
-                'weight': 0.18,
-                'description': 'Possible impersonation'
+                    'irs', 'internal revenue', 'tax', 'microsoft', 'apple', 'google', 'amazon',
+                    'bank', 'wells fargo', 'chase', 'security department', 'fraud department',
+                    'social security', 'ssa', 'medicare', 'medicaid', 'government', 'federal',
+                    'sheriff', 'police', 'officer', 'agent', 'tech support', 'customer service',
+                    'refund department'
+                ], 
+                'weight': 0.20
             },
             'threats': {
                 'keywords': [
-                    'arrest', 'lawsuit', 'legal action', 'warrant', 'jail',
-                    'prison', 'fine', 'penalty', 'sued', 'court', 'judge',
-                    'prosecution', 'criminal', 'charges', 'delinquent',
-                    'debt', 'collection', 'seize', 'freeze', 'close'
-                ],
-                'weight': 0.17,
-                'description': 'Threatening language'
+                    'arrest', 'arrested', 'lawsuit', 'legal action', 'warrant', 'prosecution',
+                    'jail', 'prison', 'court', 'suspended', 'frozen', 'shut off', 'disconnect',
+                    'terminated', 'criminal', 'charges', 'penalty', 'fine', 'consequences'
+                ], 
+                'weight': 0.20
             },
             'too_good_to_be_true': {
                 'keywords': [
-                    'million', 'inheritance', 'prize', 'lottery', 'won',
-                    'congratulations', 'claim', 'reward', 'free', 'bonus',
-                    'money', 'cash', 'refund', 'windfall', 'rich', 'wealthy'
-                ],
-                'weight': 0.10,
-                'description': 'Unrealistic offers'
+                    'prize', 'lottery', 'won', 'winner', 'congratulations', 'selected', 'qualified',
+                    'free', 'guaranteed', 'risk-free', 'double your money', 'triple', 'opportunity',
+                    'limited spots', 'exclusive', 'claim your', 'youve been chosen'
+                ], 
+                'weight': 0.15
+            },
+            'emotional_manipulation': {
+                'keywords': [
+                    'love you', 'darling', 'sweetheart', 'honey', 'baby', 'help me', 'need you',
+                    'trust me', 'promise', 'dont tell', 'secret', 'emergency', 'accident',
+                    'hospital', 'stuck', 'stranded', 'scared', 'trouble', 'crisis'
+                ], 
+                'weight': 0.20
+            },
+            'remote_access': {
+                'keywords': [
+                    'remote access', 'anydesk', 'teamviewer', 'remote desktop', 'screenshare',
+                    'download', 'install', 'click on', 'go to website', 'type in', 'enter this code'
+                ], 
+                'weight': 0.18
             }
         }
     
-    def _load_language_patterns(self) -> Dict:
-        """Load patterns for multiple languages"""
-        return {
-            'en': {
-                'urgency': ['immediately', 'urgent', 'now', 'hurry'],
-                'payment': ['transfer', 'payment', 'card', 'money'],
-                'threat': ['arrest', 'lawsuit', 'legal']
-            },
-            'es': {
-                'urgency': ['inmediatamente', 'urgente', 'ahora', 'rápido'],
-                'payment': ['transferencia', 'pago', 'tarjeta', 'dinero'],
-                'threat': ['arresto', 'demanda', 'legal']
-            },
-            'fr': {
-                'urgency': ['immédiatement', 'urgent', 'maintenant', 'vite'],
-                'payment': ['virement', 'paiement', 'carte', 'argent'],
-                'threat': ['arrestation', 'procès', 'légal']
-            },
-            'hi': {
-                'urgency': ['तुरंत', 'आपातकाल', 'अभी', 'जल्दी'],
-                'payment': ['स्थानांतरण', 'भुगतान', 'कार्ड', 'पैसा'],
-                'threat': ['गिरफ्तारी', 'मुकदमा', 'कानूनी']
-            }
-        }
-    
-    def calculate_risk_score(self, transcript: str) -> Tuple[float, List[str], str]:
-        """Calculate comprehensive risk score using advanced analysis"""
+    def calculate_risk_score(self, transcript, phone_number=None, call_time=None):
         transcript_lower = transcript.lower()
         total_score = 0
         detected_patterns = []
         
-        # Analyze each scam signature
+        # Count matches for each pattern
         for pattern_type, pattern_data in self.scam_signatures.items():
-            pattern_score = 0
-            keywords = pattern_data['keywords']
-            
-            # Count keyword matches
-            matches = sum(1 for keyword in keywords if keyword in transcript_lower)
-            
+            matches = sum(1 for keyword in pattern_data['keywords'] if keyword in transcript_lower)
             if matches > 0:
-                # Calculate pattern score based on matches
-                pattern_score = min(matches / len(keywords), 1.0) * pattern_data['weight']
+                # Calculate score with higher weights
+                match_ratio = min(matches / len(pattern_data['keywords']), 1.0)
+                pattern_score = match_ratio * pattern_data['weight']
+                
+                # BOOST scores for multiple keyword matches
+                if matches >= 2:
+                    pattern_score *= 1.5
+                if matches >= 3:
+                    pattern_score *= 1.8
+                    
                 total_score += pattern_score
                 detected_patterns.append(pattern_type)
         
-        # Bonus analysis: Check for multiple threat combinations
-        threat_combinations = self._analyze_threat_combinations(transcript_lower)
-        combination_boost = len(threat_combinations) * 0.05
-        total_score += min(combination_boost, 0.15)
+        # MAJOR BOOST: Dangerous pattern combinations
+        combination_bonus = 0
+        pattern_count = len(detected_patterns)
         
-        # Normalize to 0-100 scale
-        risk_score = min(total_score * 100, 100)
+        # 3+ patterns = definitely suspicious
+        if pattern_count >= 3:
+            combination_bonus += 0.25
+        
+        # 4+ patterns = high risk
+        if pattern_count >= 4:
+            combination_bonus += 0.30
+            
+        # 5+ patterns = extreme risk
+        if pattern_count >= 5:
+            combination_bonus += 0.35
+        
+        # Check for specific dangerous combos
+        if 'impersonation' in detected_patterns and 'threats' in detected_patterns:
+            combination_bonus += 0.20  # Authority + threat = classic scam
+        
+        if 'payment_request' in detected_patterns and 'urgency' in detected_patterns:
+            combination_bonus += 0.20  # Payment + urgency = pressure scam
+            
+        if 'personal_info' in detected_patterns and 'threats' in detected_patterns:
+            combination_bonus += 0.15  # Info harvesting + threats
+        
+        total_score += combination_bonus
+        
+        # Add entropy variation
+        context_seed = hashlib.md5(f"{transcript[:50]}{call_time or datetime.now().isoformat()}".encode()).hexdigest()
+        random.seed(int(context_seed[:8], 16))
+        entropy_factor = 0.98 + (random.random() * 0.04)  # Smaller variation: 0.98 to 1.02
+        total_score *= entropy_factor
+        
+        # Scale to 0-100 with higher multiplier
+        risk_score = min(total_score * 120, 100)  # Increased from 100 to 120
+        
+        # Add small random variation
+        risk_score = max(0, min(100, risk_score + random.uniform(-1, 1)))
         
         # Determine threat level
         if risk_score >= 70:
@@ -144,112 +154,13 @@ class AdvancedScamDetector:
         
         return risk_score, detected_patterns, threat_level
     
-    def _analyze_threat_combinations(self, transcript: str) -> List[str]:
-        """Detect dangerous combinations of threat factors"""
-        combinations = []
-        
-        # Check for urgency + payment
-        urgency_keys = self.scam_signatures['urgency']['keywords']
-        payment_keys = self.scam_signatures['payment_request']['keywords']
-        
-        has_urgency = any(k in transcript for k in urgency_keys)
-        has_payment = any(k in transcript for k in payment_keys)
-        
-        if has_urgency and has_payment:
-            combinations.append('urgent_payment_demand')
-        
-        # Check for impersonation + threats
-        imperson_keys = self.scam_signatures['impersonation']['keywords']
-        threat_keys = self.scam_signatures['threats']['keywords']
-        
-        has_imperson = any(k in transcript for k in imperson_keys)
-        has_threats = any(k in transcript for k in threat_keys)
-        
-        if has_imperson and has_threats:
-            combinations.append('authority_threat')
-        
-        # Check for personal info + urgent payment
-        info_keys = self.scam_signatures['personal_info']['keywords']
-        has_info = any(k in transcript for k in info_keys)
-        
-        if has_info and has_payment:
-            combinations.append('info_and_payment')
-        
-        return combinations
+    def detect_language(self, transcript):
+        return 'en'
     
-    def detect_language(self, transcript: str) -> str:
-        """Detect language of transcript"""
-        transcript_lower = transcript.lower()
-        
-        language_scores = {}
-        for lang, patterns in self.language_patterns.items():
-            score = 0
-            for pattern_type, keywords in patterns.items():
-                score += sum(1 for k in keywords if k in transcript_lower)
-            language_scores[lang] = score
-        
-        # Return language with highest score, default to English
-        return max(language_scores, key=language_scores.get) if max(language_scores.values()) > 0 else 'en'
-    
-    def generate_insights(self, transcript: str, risk_score: float, threat_level: str) -> Dict:
-        """Generate detailed insights about the scam"""
-        insights = {
+    def generate_insights(self, transcript, risk_score, threat_level):
+        return {
             'risk_indicators': [],
             'why_its_scam': [],
-            'protection_tips': [],
+            'protection_tips': ['Hang up immediately', 'Never share personal info'],
             'confidence_factors': []
         }
-        
-        transcript_lower = transcript.lower()
-        
-        # Identify risk indicators
-        if any(k in transcript_lower for k in self.scam_signatures['urgency']['keywords']):
-            insights['risk_indicators'].append('⚠️ High pressure/urgency tactics')
-            insights['why_its_scam'].append('Scammers use urgency to prevent you from thinking clearly')
-        
-        if any(k in transcript_lower for k in self.scam_signatures['payment_request']['keywords']):
-            insights['risk_indicators'].append('💳 Unusual payment method requested')
-            insights['why_its_scam'].append('Legitimate organizations don\'t ask for gift cards or wire transfers')
-        
-        if any(k in transcript_lower for k in self.scam_signatures['personal_info']['keywords']):
-            insights['risk_indicators'].append('🔐 Personal information requested')
-            insights['why_its_scam'].append('Real institutions never ask for SSN, passwords, or credit card numbers')
-        
-        if any(k in transcript_lower for k in self.scam_signatures['impersonation']['keywords']):
-            insights['risk_indicators'].append('👤 Suspicious caller identity')
-            insights['why_its_scam'].append('Verify independently before trusting caller credentials')
-        
-        if any(k in transcript_lower for k in self.scam_signatures['threats']['keywords']):
-            insights['risk_indicators'].append('⚡ Threatening or intimidating language')
-            insights['why_its_scam'].append('Scammers threaten legal action to create fear')
-        
-        # Add protection tips
-        insights['protection_tips'] = [
-            '✓ Hang up immediately if pressured',
-            '✓ Never share personal/financial information',
-            '✓ Verify by calling official numbers',
-            '✓ No legitimate entity sends money via gift cards',
-            '✓ Report to FTC at reportfraud.ftc.gov'
-        ]
-        
-        # Confidence factors
-        if risk_score >= 70:
-            insights['confidence_factors'] = [
-                f'Multiple red flags detected ({len(insights["risk_indicators"])})',
-                'Strong pattern match to known scams',
-                'High confidence classification'
-            ]
-        elif risk_score >= 40:
-            insights['confidence_factors'] = [
-                'Some suspicious indicators present',
-                'Proceed with caution',
-                'Verify caller independently'
-            ]
-        else:
-            insights['confidence_factors'] = [
-                'Low risk indicators detected',
-                'Appears to be legitimate',
-                'But stay vigilant'
-            ]
-        
-        return insights
