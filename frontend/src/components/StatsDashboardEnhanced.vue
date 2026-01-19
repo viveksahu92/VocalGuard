@@ -1,66 +1,56 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
-    <!-- Animated Background -->
-    <div class="fixed inset-0 overflow-hidden pointer-events-none">
-      <div class="absolute top-0 left-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
-      <div class="absolute bottom-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
-    </div>
-
+  <div class="p-6">
     <div class="relative z-10">
       <!-- Header -->
       <div class="mb-8">
-        <h1 class="text-4xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent mb-2">
-          🛡️ VocalGuard Analytics Dashboard
+        <h1 class="text-3xl font-bold text-slate-900 mb-2">
+          Analytics Dashboard
         </h1>
-        <p class="text-gray-400">Real-time scam detection statistics and threat analysis</p>
+        <p class="text-slate-500">Real-time scam detection statistics and threat analysis</p>
       </div>
 
-      <!-- KPI Cards with 3D Effect -->
+      <!-- KPI Cards -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <!-- Total Calls Card -->
         <div class="group cursor-pointer">
-          <div class="relative bg-gradient-to-br from-blue-600/20 to-purple-600/20 backdrop-blur-xl rounded-2xl p-6 border border-blue-500/30 hover:border-blue-400/60 transition-all duration-300 shadow-lg hover:shadow-blue-500/20 transform hover:scale-105">
-            <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-600/0 to-purple-600/0 group-hover:from-blue-600/10 group-hover:to-purple-600/10 transition-all duration-300"></div>
+          <div class="relative bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1">
             <div class="relative">
-              <div class="text-blue-300 text-sm font-semibold mb-2">📞 Total Calls Analyzed</div>
-              <div class="text-4xl font-bold text-white mb-2">{{ stats.totalCalls }}</div>
-              <div class="text-xs text-blue-300/70">{{ stats.todayCallsCount }} calls today</div>
+              <div class="text-blue-600 text-sm font-semibold mb-2">📞 Total Calls Analyzed</div>
+              <div class="text-4xl font-bold text-slate-900 mb-2">{{ stats.totalCalls }}</div>
+              <div class="text-xs text-slate-500">{{ stats.todayCallsCount }} calls today</div>
             </div>
           </div>
         </div>
 
         <!-- Scams Detected Card -->
         <div class="group cursor-pointer">
-          <div class="relative bg-gradient-to-br from-red-600/20 to-orange-600/20 backdrop-blur-xl rounded-2xl p-6 border border-red-500/30 hover:border-red-400/60 transition-all duration-300 shadow-lg hover:shadow-red-500/20 transform hover:scale-105">
-            <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-red-600/0 to-orange-600/0 group-hover:from-red-600/10 group-hover:to-orange-600/10 transition-all duration-300"></div>
+          <div class="relative bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1">
             <div class="relative">
-              <div class="text-red-300 text-sm font-semibold mb-2">⚠️ Scams Detected</div>
-              <div class="text-4xl font-bold text-white mb-2">{{ stats.scamCount }}</div>
-              <div class="text-xs text-red-300/70">{{ scamRate }}% detection rate</div>
+              <div class="text-red-600 text-sm font-semibold mb-2">⚠️ Scams Detected</div>
+              <div class="text-4xl font-bold text-slate-900 mb-2">{{ stats.scamCount }}</div>
+              <div class="text-xs text-slate-500">{{ scamRate }}% detection rate</div>
             </div>
           </div>
         </div>
 
         <!-- Safe Calls Card -->
         <div class="group cursor-pointer">
-          <div class="relative bg-gradient-to-br from-green-600/20 to-emerald-600/20 backdrop-blur-xl rounded-2xl p-6 border border-green-500/30 hover:border-green-400/60 transition-all duration-300 shadow-lg hover:shadow-green-500/20 transform hover:scale-105">
-            <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-green-600/0 to-emerald-600/0 group-hover:from-green-600/10 group-hover:to-emerald-600/10 transition-all duration-300"></div>
+          <div class="relative bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1">
             <div class="relative">
-              <div class="text-green-300 text-sm font-semibold mb-2">✓ Legitimate Calls</div>
-              <div class="text-4xl font-bold text-white mb-2">{{ stats.safeCount }}</div>
-              <div class="text-xs text-green-300/70">{{ safeRate }}% verified safe</div>
+              <div class="text-emerald-600 text-sm font-semibold mb-2">✓ Legitimate Calls</div>
+              <div class="text-4xl font-bold text-slate-900 mb-2">{{ stats.safeCount }}</div>
+              <div class="text-xs text-slate-500">{{ safeRate }}% verified safe</div>
             </div>
           </div>
         </div>
 
         <!-- Average Risk Score Card -->
         <div class="group cursor-pointer">
-          <div class="relative bg-gradient-to-br from-yellow-600/20 to-orange-600/20 backdrop-blur-xl rounded-2xl p-6 border border-yellow-500/30 hover:border-yellow-400/60 transition-all duration-300 shadow-lg hover:shadow-yellow-500/20 transform hover:scale-105">
-            <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-yellow-600/0 to-orange-600/0 group-hover:from-yellow-600/10 group-hover:to-orange-600/10 transition-all duration-300"></div>
+          <div class="relative bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1">
             <div class="relative">
-              <div class="text-yellow-300 text-sm font-semibold mb-2">📊 Avg Risk Score</div>
-              <div class="text-4xl font-bold text-white mb-2">{{ averageRiskScore }}/100</div>
-              <div class="text-xs text-yellow-300/70">Based on all analyzed calls</div>
+              <div class="text-orange-600 text-sm font-semibold mb-2">📊 Avg Risk Score</div>
+              <div class="text-4xl font-bold text-slate-900 mb-2">{{ averageRiskScore }}/100</div>
+              <div class="text-xs text-slate-500">Based on all analyzed calls</div>
             </div>
           </div>
         </div>
@@ -69,48 +59,48 @@
       <!-- Charts Section -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <!-- Threat Type Distribution -->
-        <div class="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-lg">
-          <h3 class="text-white font-bold text-lg mb-6 flex items-center gap-2">
+        <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+          <h3 class="text-slate-900 font-bold text-lg mb-6 flex items-center gap-2">
             🎯 Top Threat Types
           </h3>
           <div class="space-y-4">
             <div v-for="threat in topThreats" :key="threat.type" class="group">
               <div class="flex justify-between items-center mb-1.5">
-                <span class="text-gray-300 text-sm font-semibold">{{ formatThreat(threat.type) }}</span>
-                <span class="text-gray-400 text-sm">{{ threat.count }} detections</span>
+                <span class="text-slate-700 text-sm font-medium">{{ formatThreat(threat.type) }}</span>
+                <span class="text-slate-500 text-sm">{{ threat.count }} detections</span>
               </div>
-              <div class="relative h-2.5 bg-gray-700 rounded-full overflow-hidden">
+              <div class="relative h-2.5 bg-slate-100 rounded-full overflow-hidden">
                 <div
                   :style="{ width: threat.percentage + '%' }"
                   :class="[
-                    'h-full rounded-full transition-all duration-500 group-hover:brightness-110',
+                    'h-full rounded-full transition-all duration-500',
                     getThreatColor(threat.type)
                   ]"
                 ></div>
               </div>
-              <div class="text-xs text-gray-500 mt-1">{{ threat.percentage }}%</div>
+              <div class="text-xs text-slate-400 mt-1">{{ threat.percentage }}%</div>
             </div>
           </div>
         </div>
 
         <!-- Language Distribution -->
-        <div class="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-lg">
-          <h3 class="text-white font-bold text-lg mb-6 flex items-center gap-2">
+        <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+          <h3 class="text-slate-900 font-bold text-lg mb-6 flex items-center gap-2">
             🌍 Language Detection
           </h3>
           <div class="space-y-4">
             <div v-for="lang in languageStats" :key="lang.code" class="group">
               <div class="flex justify-between items-center mb-1.5">
-                <span class="text-gray-300 text-sm font-semibold">{{ lang.name }}</span>
-                <span class="text-gray-400 text-sm">{{ lang.count }} calls</span>
+                <span class="text-slate-700 text-sm font-medium">{{ lang.name }}</span>
+                <span class="text-slate-500 text-sm">{{ lang.count }} calls</span>
               </div>
-              <div class="relative h-2.5 bg-gray-700 rounded-full overflow-hidden">
+              <div class="relative h-2.5 bg-slate-100 rounded-full overflow-hidden">
                 <div
                   :style="{ width: lang.percentage + '%' }"
-                  class="h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full transition-all duration-500 group-hover:brightness-110"
+                  class="h-full bg-blue-500 rounded-full transition-all duration-500"
                 ></div>
               </div>
-              <div class="text-xs text-gray-500 mt-1">{{ lang.percentage }}%</div>
+              <div class="text-xs text-slate-400 mt-1">{{ lang.percentage }}%</div>
             </div>
           </div>
         </div>
@@ -119,70 +109,70 @@
       <!-- Detailed Stats Grid -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <!-- High Risk Calls -->
-        <div class="bg-gradient-to-br from-red-600/20 to-orange-600/20 backdrop-blur-xl rounded-2xl p-6 border border-red-500/30 shadow-lg">
-          <h3 class="text-white font-bold text-lg mb-4 flex items-center gap-2">
+        <div class="bg-red-50 rounded-2xl p-6 border border-red-100 shadow-sm">
+          <h3 class="text-red-900 font-bold text-lg mb-4 flex items-center gap-2">
             🚨 High Risk Calls
           </h3>
-          <div class="text-4xl font-bold bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent mb-2">
+          <div class="text-4xl font-bold text-red-600 mb-2">
             {{ highRiskCount }}
           </div>
-          <p class="text-gray-400 text-sm">Risk score >= 70</p>
+          <p class="text-red-700/70 text-sm">Risk score >= 70</p>
         </div>
 
         <!-- Medium Risk Calls -->
-        <div class="bg-gradient-to-br from-yellow-600/20 to-orange-600/20 backdrop-blur-xl rounded-2xl p-6 border border-yellow-500/30 shadow-lg">
-          <h3 class="text-white font-bold text-lg mb-4 flex items-center gap-2">
+        <div class="bg-orange-50 rounded-2xl p-6 border border-orange-100 shadow-sm">
+          <h3 class="text-orange-900 font-bold text-lg mb-4 flex items-center gap-2">
             ⚠️ Medium Risk Calls
           </h3>
-          <div class="text-4xl font-bold bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent mb-2">
+          <div class="text-4xl font-bold text-orange-600 mb-2">
             {{ mediumRiskCount }}
           </div>
-          <p class="text-gray-400 text-sm">Risk score 40-70</p>
+          <p class="text-orange-700/70 text-sm">Risk score 40-70</p>
         </div>
 
         <!-- Low Risk Calls -->
-        <div class="bg-gradient-to-br from-green-600/20 to-emerald-600/20 backdrop-blur-xl rounded-2xl p-6 border border-green-500/30 shadow-lg">
-          <h3 class="text-white font-bold text-lg mb-4 flex items-center gap-2">
+        <div class="bg-emerald-50 rounded-2xl p-6 border border-emerald-100 shadow-sm">
+          <h3 class="text-emerald-900 font-bold text-lg mb-4 flex items-center gap-2">
             ✓ Low Risk Calls
           </h3>
-          <div class="text-4xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent mb-2">
+          <div class="text-4xl font-bold text-emerald-600 mb-2">
             {{ lowRiskCount }}
           </div>
-          <p class="text-gray-400 text-sm">Risk score < 40</p>
+          <p class="text-emerald-700/70 text-sm">Risk score < 40</p>
         </div>
       </div>
 
       <!-- Recent Alerts -->
-      <div class="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-lg">
-        <h3 class="text-white font-bold text-lg mb-6 flex items-center gap-2">
+      <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+        <h3 class="text-slate-900 font-bold text-lg mb-6 flex items-center gap-2">
           📋 Recent Scam Alerts
         </h3>
-        <div class="space-y-3 max-h-80 overflow-y-auto">
-          <div v-if="recentAlerts.length === 0" class="text-gray-500 text-center py-8">
+        <div class="space-y-3 max-h-80 overflow-y-auto pr-2 custom-scroll">
+          <div v-if="recentAlerts.length === 0" class="text-slate-500 text-center py-8">
             <p>No scam alerts yet. VocalGuard is monitoring...</p>
           </div>
           <div 
             v-for="alert in recentAlerts" 
             :key="alert.id"
-            class="bg-gradient-to-r from-red-900/30 to-orange-900/30 backdrop-blur rounded-lg p-4 border border-red-500/30 hover:border-red-400/60 transition-all duration-300"
+            class="bg-slate-50 rounded-lg p-4 border border-slate-200 hover:border-red-200 transition-all duration-200"
           >
             <div class="flex justify-between items-start gap-4">
               <div class="flex-1">
-                <p class="text-white font-semibold">{{ alert.caller }}</p>
-                <p class="text-gray-400 text-sm">{{ alert.number }}</p>
+                <p class="text-slate-900 font-semibold">{{ alert.caller }}</p>
+                <p class="text-slate-500 text-sm">{{ alert.number }}</p>
                 <div class="flex flex-wrap gap-2 mt-2">
                   <span 
                     v-for="threat in alert.threats" 
                     :key="threat"
-                    class="text-xs bg-red-900/50 text-red-200 px-2 py-1 rounded-full border border-red-500/50"
+                    class="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full border border-red-200"
                   >
                     {{ formatThreat(threat) }}
                   </span>
                 </div>
               </div>
               <div class="text-right">
-                <div class="text-2xl font-bold text-red-400">{{ alert.risk }}/100</div>
-                <p class="text-xs text-gray-500 mt-1">{{ formatTime(alert.timestamp) }}</p>
+                <div class="text-2xl font-bold text-red-600">{{ alert.risk }}/100</div>
+                <p class="text-xs text-slate-400 mt-1">{{ formatTime(alert.timestamp) }}</p>
               </div>
             </div>
           </div>
@@ -190,7 +180,7 @@
       </div>
 
       <!-- Footer -->
-      <div class="mt-8 text-center text-gray-500 text-sm">
+      <div class="mt-8 text-center text-slate-400 text-sm">
         <p>Data updated in real-time • Last refresh: {{ lastRefreshTime }}</p>
       </div>
     </div>

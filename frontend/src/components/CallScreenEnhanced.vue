@@ -1,11 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-    <!-- Animated Background Elements -->
-    <div class="fixed inset-0 overflow-hidden pointer-events-none">
-      <div class="absolute top-0 left-0 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse"></div>
-      <div class="absolute bottom-0 right-0 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
-    </div>
-
+  <div class="min-h-full py-8">
     <!-- Main Content -->
     <div class="relative z-10">
       <!-- Enhanced Call Screen Container -->

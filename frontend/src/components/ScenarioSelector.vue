@@ -1,19 +1,21 @@
 <template>
-  <div class="bg-gray-800 rounded-2xl p-6 mb-6">
-    <h3 class="text-white text-xl font-bold mb-2">🎭 Test Scenarios - 15 Scam Types</h3>
-    <p class="text-gray-400 text-sm mb-4">Click any scenario to test advanced detection</p>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+  <div class="p-6">
+    <div class="mb-6">
+      <h3 class="text-slate-900 text-xl font-bold mb-2">🎭 Test Scenarios - 15 Scam Types</h3>
+      <p class="text-slate-500 text-sm">Click any scenario to test advanced detection</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <button
         v-for="scenario in scenarios"
         :key="scenario.id"
         @click="selectScenario(scenario)"
-        class="bg-gray-700 hover:bg-gray-600 text-white p-4 rounded-xl text-left transition transform hover:scale-105"
+        class="bg-white border border-slate-200 hover:border-blue-300 hover:shadow-md hover:-translate-y-1 p-4 rounded-xl text-left transition-all duration-300 group"
       >
         <div class="flex items-center gap-3">
-          <span class="text-2xl">{{ scenario.icon }}</span>
+          <span class="text-3xl group-hover:scale-110 transition-transform">{{ scenario.icon }}</span>
           <div>
-            <p class="font-semibold">{{ scenario.name }}</p>
-            <p class="text-xs text-gray-400">{{ scenario.type }}</p>
+            <p class="font-semibold text-slate-900 group-hover:text-blue-700 transition-colors">{{ scenario.name }}</p>
+            <p class="text-xs text-slate-500">{{ scenario.type }}</p>
           </div>
         </div>
       </button>

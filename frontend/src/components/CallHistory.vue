@@ -1,27 +1,28 @@
 <template>
-  <div class="bg-gray-800 rounded-2xl p-6">
-    <div class="flex justify-between items-center mb-4">
-      <h3 class="text-white text-xl font-bold">📋 Call History</h3>
+  <div class="p-6">
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-slate-900 text-xl font-bold">📋 Call History</h3>
       <button 
         @click="refreshHistory"
         :disabled="loading"
-        class="text-purple-400 hover:text-purple-300 text-sm disabled:opacity-50"
+        class="text-blue-600 hover:text-blue-700 text-sm font-medium hover:bg-blue-50 px-3 py-1 rounded-lg transition-colors disabled:opacity-50"
       >
         {{ loading ? 'Loading...' : '🔄 Refresh' }}
       </button>
     </div>
     
-    <div v-if="error" class="text-red-400 text-center py-4 mb-4 bg-red-500/10 rounded-lg">
+    <div v-if="error" class="text-red-600 text-center py-4 mb-4 bg-red-50 rounded-lg text-sm border border-red-100">
       {{ error }}
     </div>
     
-    <div v-if="history.length === 0 && !loading" class="text-gray-400 text-center py-8">
-      No calls analyzed yet
+    <div v-if="history.length === 0 && !loading" class="text-slate-400 text-center py-12 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+      <p class="mb-2">No calls analyzed yet</p>
+      <p class="text-xs">Start a call simulation to see history here</p>
     </div>
     
-    <div v-if="loading && history.length === 0" class="text-gray-400 text-center py-8">
+    <div v-if="loading && history.length === 0" class="text-slate-400 text-center py-12 bg-slate-50 rounded-xl border border-dashed border-slate-200">
       <div class="flex items-center justify-center gap-2">
-        <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24">
+        <svg class="animate-spin h-5 w-5 text-blue-500" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
@@ -29,38 +30,38 @@
       </div>
     </div>
     
-    <div v-else class="space-y-3 max-h-96 overflow-y-auto">
+    <div v-else class="space-y-3 max-h-96 overflow-y-auto pr-2 custom-scroll">
       <div
         v-for="call in history"
         :key="call.id"
-        class="bg-gray-700 rounded-xl p-4 cursor-pointer hover:bg-gray-600 transition"
+        class="bg-white border border-slate-200 rounded-xl p-4 cursor-pointer hover:border-blue-300 hover:shadow-md transition-all duration-200"
         @click="viewCall(call)"
       >
         <div class="flex justify-between items-start mb-2">
           <div>
-            <p class="text-white font-semibold">{{ call.caller_name || 'Unknown' }}</p>
-            <p class="text-gray-400 text-sm">{{ call.caller_number || 'Unknown' }}</p>
-            <p v-if="call.language && call.language !== 'en'" class="text-xs text-purple-400">
+            <p class="text-slate-900 font-semibold">{{ call.caller_name || 'Unknown' }}</p>
+            <p class="text-slate-500 text-sm">{{ call.caller_number || 'Unknown' }}</p>
+            <p v-if="call.language && call.language !== 'en'" class="text-xs text-indigo-500 mt-1">
               {{ getLanguageName(call.language) }}
             </p>
           </div>
           <span 
             :class="[
-              'px-3 py-1 rounded-full text-xs font-bold',
+              'px-3 py-1 rounded-full text-xs font-bold border',
               call.is_scam 
-                ? 'bg-red-500/20 text-red-300' 
-                : 'bg-green-500/20 text-green-300'
+                ? 'bg-red-50 border-red-200 text-red-700' 
+                : 'bg-green-50 border-green-200 text-green-700'
             ]"
           >
             {{ call.is_scam ? '⚠️ SCAM' : '✓ Safe' }}
           </span>
         </div>
         
-        <p class="text-gray-300 text-sm mb-2 truncate">
+        <p class="text-slate-600 text-sm mb-3 truncate bg-slate-50 p-2 rounded-lg">
           {{ call.transcript }}
         </p>
         
-        <div class="flex justify-between items-center text-xs text-gray-400">
+        <div class="flex justify-between items-center text-xs text-slate-400">
           <span>{{ formatDate(call.timestamp) }}</span>
           <span>Confidence: {{ Math.round((call.confidence || 0) * 100) }}%</span>
         </div>

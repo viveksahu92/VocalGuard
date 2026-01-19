@@ -1,4 +1,5 @@
 <template>
+<<<<<<< HEAD
   <div id="app">
     <!-- Show Login/Signup when not authenticated -->
     <template v-if="!isAuthenticated">
@@ -123,14 +124,152 @@
         </div>
       </div>
     </template>
+=======
+  <div id="app" class="min-h-screen bg-slate-50 text-slate-900 font-sans">
+    
+    <!-- View Switcher -->
+    <template v-if="currentView === 'landing'">
+      <LandingPage 
+        @start="handleStart" 
+        @learn-more="currentView = 'learn'" 
+      />
+    </template>
+
+    <template v-else-if="currentView === 'learn'">
+      <div class="min-h-screen flex flex-col">
+        <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-sm">
+          <div class="max-w-7xl mx-auto px-4 h-16 flex items-center">
+            <div class="flex items-center cursor-pointer" @click="currentView = 'landing'">
+              <span class="text-2xl mr-2">🛡️</span>
+              <h1 class="text-xl font-bold text-slate-900">VocalGuard</h1>
+            </div>
+          </div>
+        </nav>
+        <LearnMore @back="currentView = 'landing'" />
+      </div>
+    </template>
+
+    <template v-else-if="currentView === 'privacy'">
+      <div class="min-h-screen flex flex-col">
+        <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-sm">
+          <div class="max-w-7xl mx-auto px-4 h-16 flex items-center">
+            <div class="flex items-center cursor-pointer" @click="currentView = 'landing'">
+              <span class="text-2xl mr-2">🛡️</span>
+              <h1 class="text-xl font-bold text-slate-900">VocalGuard</h1>
+            </div>
+          </div>
+        </nav>
+        <PrivacyPolicy @close="currentView = 'landing'" />
+      </div>
+    </template>
+
+    <!-- Main App View -->
+    <div v-else class="min-h-screen flex flex-col">
+      <!-- Enhanced Navbar -->
+      <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between items-center h-16">
+            
+            <!-- Logo Left -->
+            <div class="flex-shrink-0 flex items-center cursor-pointer" @click="currentView = 'landing'">
+              <span class="text-2xl mr-2">🛡️</span>
+              <div>
+                <h1 class="text-xl font-bold text-slate-900 tracking-tight leading-none">VocalGuard</h1>
+                <p class="text-[10px] text-slate-500 font-medium tracking-wide uppercase">Scam Detection</p>
+              </div>
+            </div>
+
+            <!-- Navigation Links Right -->
+            <div class="hidden md:flex space-x-1">
+              <button
+                v-for="tab in tabs"
+                :key="tab.id"
+                @click="currentTab = tab.id"
+                :class="[
+                  'px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200',
+                  currentTab === tab.id
+                    ? 'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                ]"
+              >
+                {{ tab.name }}
+              </button>
+            </div>
+
+            <!-- Mobile Menu Button (simplified) -->
+            <div class="md:hidden flex items-center">
+              <button class="text-slate-500 hover:text-slate-700">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Mobile Menu (Conditional, simplified for now) -->
+        <div class="md:hidden border-t border-slate-100 bg-white" v-if="false">
+          <div class="px-2 pt-2 pb-3 space-y-1">
+             <button
+                v-for="tab in tabs"
+                :key="tab.id"
+                @click="currentTab = tab.id"
+                class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50"
+              >
+                {{ tab.name }}
+              </button>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Content Area -->
+      <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden min-h-[600px]">
+          <CallScreenEnhanced 
+            v-if="currentTab === 'call'"
+            :selectedScenario="selectedScenario"
+            @call-analyzed="handleCallAnalyzed"
+          />
+          <ScenarioSelector 
+            v-else-if="currentTab === 'scenarios'"
+            @scenario-selected="handleScenarioSelected"
+          />
+          <CallHistory 
+            v-else-if="currentTab === 'history'"
+          />
+          <StatsDashboardEnhanced 
+            v-else-if="currentTab === 'analytics'"
+          />
+        </div>
+      </main>
+
+      <!-- Footer -->
+      <footer class="bg-white border-t border-slate-200 py-8">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+          <p class="text-slate-500 text-sm">
+            © 2026 VocalGuard • Built for Nexora Hacks • 
+            <button @click="currentView = 'privacy'" class="text-blue-600 hover:underline">Privacy Policy</button> • 
+            <a href="#" class="text-blue-600 hover:underline">Terms</a>
+          </p>
+        </div>
+      </footer>
+    </div>
+>>>>>>> 87957fc (Refactor theme to light (whitish), add Landing Page, fix Navbar, add LearnMore/Privacy pages)
   </div>
 </template>
 
 <script>
+<<<<<<< HEAD
 import { ref, onMounted } from 'vue'
 import { useAuth } from './composables/useAuth'
 import Login from './components/Login.vue'
 import Signup from './components/Signup.vue'
+=======
+import { ref } from 'vue'
+import LandingPage from './components/LandingPage.vue'
+import LearnMore from './components/LearnMore.vue'
+import PrivacyPolicy from './components/PrivacyPolicy.vue'
+>>>>>>> 87957fc (Refactor theme to light (whitish), add Landing Page, fix Navbar, add LearnMore/Privacy pages)
 import CallScreenEnhanced from './components/CallScreenEnhanced.vue'
 import ScenarioSelector from './components/ScenarioSelector.vue'
 import CallHistory from './components/CallHistory.vue'
@@ -139,8 +278,14 @@ import StatsDashboardEnhanced from './components/StatsDashboardEnhanced.vue'
 export default {
   name: 'App',
   components: {
+<<<<<<< HEAD
     Login,
     Signup,
+=======
+    LandingPage,
+    LearnMore,
+    PrivacyPolicy,
+>>>>>>> 87957fc (Refactor theme to light (whitish), add Landing Page, fix Navbar, add LearnMore/Privacy pages)
     CallScreenEnhanced,
     ScenarioSelector,
     CallHistory,
@@ -148,9 +293,14 @@ export default {
   },
   
   setup() {
+<<<<<<< HEAD
     const { isAuthenticated, user, logout, checkAuth } = useAuth()
     
     const authView = ref('login')
+=======
+    // Views: 'landing', 'app', 'learn', 'privacy'
+    const currentView = ref('landing')
+>>>>>>> 87957fc (Refactor theme to light (whitish), add Landing Page, fix Navbar, add LearnMore/Privacy pages)
     const currentTab = ref('call')
     const selectedScenario = ref(null)
     const showUserMenu = ref(false)
@@ -162,6 +312,10 @@ export default {
       { id: 'analytics', name: '📊 Analytics' }
     ]
     
+    const handleStart = () => {
+      currentView.value = 'app'
+    }
+
     const handleScenarioSelected = (scenario) => {
       selectedScenario.value = scenario
       currentTab.value = 'call'
@@ -189,13 +343,18 @@ export default {
     })
 
     return {
+<<<<<<< HEAD
       isAuthenticated,
       user,
       authView,
+=======
+      currentView,
+>>>>>>> 87957fc (Refactor theme to light (whitish), add Landing Page, fix Navbar, add LearnMore/Privacy pages)
       currentTab,
       selectedScenario,
       showUserMenu,
       tabs,
+      handleStart,
       handleScenarioSelected,
       handleCallAnalyzed,
       handleAuthSuccess,
@@ -206,14 +365,8 @@ export default {
 </script>
 
 <style>
-body {
-  margin: 0;
-  padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-}
-
-#app {
-  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
-  min-height: 100vh;
+/* Global resets if needed, though Tailwind handles most */
+html, body {
+  height: 100%;
 }
 </style>
