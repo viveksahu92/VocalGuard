@@ -16,6 +16,7 @@ from voice_analyzer import VoiceAnalyzer
 from caller_intelligence import CallerIntelligence
 from spoofing_detector import SpoofingDetector
 from threat_intelligence import ThreatIntelligence
+from auth import require_auth, hash_password, verify_password, generate_token, validate_email, validate_password
 import tempfile
 from datetime import datetime
 
@@ -30,7 +31,7 @@ CORS(app, resources={
     r"/*": {
         "origins": "*",
         "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type"]
+        "allow_headers": ["Content-Type", "Authorization"]
     }
 })
 
@@ -74,10 +75,208 @@ def health_check():
     return jsonify({'status': 'healthy', 'timestamp': datetime.now().isoformat()})
 
 
+# === AUTHENTICATION ENDPOINTS ===
+
+@app.route('/api/auth/signup', methods=['POST'])
+def signup():
+    """User registration endpoint"""
+    try:
+        data = request.json
+        email = data.get('email', '').strip().lower()
+        password = data.get('password', '')
+        username = data.get('username', '')
+        
+        # Validate email
+        if not email or not validate_email(email):
+            return jsonify({'error': 'Invalid email address'}), 400
+        
+        # Validate password
+        is_valid, error_message = validate_password(password)
+        if not is_valid:
+            return jsonify({'error': error_message}), 400
+        
+        # Check if user exists
+        existing_user = db.get_user_by_email(email)
+        if existing_user:
+            return jsonify({'error': 'Email already registered'}), 409
+        
+        # Hash password
+        password_hash = hash_password(password)
+        
+        # Create user
+        user_id = db.create_user(email, password_hash, username)
+        
+        if not user_id:
+            return jsonify({'error': 'Failed to create user'}), 500
+        
+        # Generate JWT token
+        token = generate_token(user_id, email)
+        
+        return jsonify({
+            'success': True,
+            'token': token,
+            'user': {
+                'id': user_id,
+                'email': email,
+                'username': username or email.split('@')[0]
+            }
+        }), 201
+        
+    except Exception as e:
+        print(f"Signup error: {e}")
+        return jsonify({'error': 'Registration failed'}), 500
+
+
+@app.route('/api/auth/login', methods=['POST'])
+def login():
+    """User login endpoint"""
+    try:
+        data = request.json
+        email = data.get('email', '').strip().lower()
+        password = data.get('password', '')
+        
+        if not email or not password:
+            return jsonify({'error': 'Email and password are required'}), 400
+        
+        # Get user
+        user = db.get_user_by_email(email)
+        
+        if not user:
+            return jsonify({'error': 'Invalid email or password'}), 401
+        
+        # Verify password
+        if not verify_password(password, user['password_hash']):
+            return jsonify({'error': 'Invalid email or password'}), 401
+        
+        # Generate JWT token
+        token = generate_token(user['id'], user['email'])
+        
+        return jsonify({
+            'success': True,
+            'token': token,
+            'user': {
+                'id': user['id'],
+                'email': user['email'],
+                'username': user['username'],
+                'total_calls_analyzed': user['total_calls_analyzed'],
+                'scams_blocked': user['scams_blocked']
+            }
+        })
+        
+    except Exception as e:
+        print(f"Login error: {e}")
+        return jsonify({'error': 'Login failed'}), 500
+
+
+@app.route('/api/auth/me', methods=['GET'])
+@require_auth
+def get_current_user():
+    """Get current user profile (protected endpoint)"""
+    try:
+        user = db.get_user_by_id(request.user_id)
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        # Don't send password hash
+        user.pop('password_hash', None)
+        
+        return jsonify({
+            'success': True,
+            'user': user
+        })
+        
+    except Exception as e:
+        print(f"Get user error: {e}")
+        return jsonify({'error': 'Failed to fetch user'}), 500
+
+
+@app.route('/api/auth/logout', methods=['POST'])
+def logout():
+    """Logout endpoint (client-side token removal)"""
+    return jsonify({'success': True, 'message': 'Logged out successfully'})
+
+
+@app.route('/api/auth/google', methods=['POST'])
+def google_auth():
+    """Google OAuth authentication endpoint"""
+    try:
+        from auth import verify_google_token
+        
+        data = request.json
+        google_token = data.get('credential')
+        
+        if not google_token:
+            return jsonify({'error': 'Google credential is required'}), 400
+        
+        # Verify Google token
+        google_data = verify_google_token(google_token)
+        
+        if not google_data.get('success'):
+            return jsonify({'error': google_data.get('error', 'Invalid Google token')}), 401
+        
+        email = google_data.get('email')
+        google_id = google_data.get('google_id')
+        name = google_data.get('name')
+        
+        if not email or not google_id:
+            return jsonify({'error': 'Could not extract email from Google token'}), 400
+        
+        # Check if user exists by Google ID
+        user = db.get_user_by_google_id(google_id)
+        
+        if not user:
+            # Check if user exists by email (migrating from email auth)
+            user = db.get_user_by_email(email)
+            
+            if user:
+                # User exists with email auth, but trying to login with Google
+                # For now, treat as separate account or link accounts
+                return jsonify({
+                    'error': 'An account with this email already exists. Please use email/password login.'
+                }), 409
+            
+            # Create new user with Google auth
+            user_id = db.create_user(
+                email=email,
+                username=name,
+                google_id=google_id,
+                auth_provider='google'
+            )
+            
+            if not user_id:
+                return jsonify({'error': 'Failed to create user'}), 500
+            
+            user = db.get_user_by_id(user_id)
+        
+        # Generate JWT token
+        token = generate_token(user['id'], user['email'])
+        
+        return jsonify({
+            'success': True,
+            'token': token,
+            'user': {
+                'id': user['id'],
+                'email': user['email'],
+                'username': user['username'],
+                'auth_provider': user.get('auth_provider', 'google'),
+                'total_calls_analyzed': user['total_calls_analyzed'],
+                'scams_blocked': user['scams_blocked']
+            }
+        })
+        
+    except Exception as e:
+        import traceback
+        print(f"Google auth error: {e}")
+        print(traceback.format_exc())
+        return jsonify({'error': 'Google authentication failed'}), 500
+
+
 @app.route('/analyze', methods=['POST'])
 def analyze_call():
     """
     ENHANCED v2.0: Analyze call transcript with ALL NEW FEATURES
+    Now supports optional authentication to save calls to user account
     
     Expected JSON payload:
     {
@@ -96,6 +295,18 @@ def analyze_call():
     - Auto-disconnect recommendation
     """
     try:
+        # Check if user is authenticated (optional)
+        user_id = None
+        token = None
+        try:
+            from auth import get_token_from_request, decode_token
+            token = get_token_from_request()
+            if token:
+                payload = decode_token(token)
+                user_id = payload.get('user_id')
+        except:
+            pass  # Not authenticated, continue anyway
+        
         data = request.json
         transcript = data.get('transcript', '')
         caller_name = data.get('caller_name', 'Unknown')
@@ -401,21 +612,23 @@ def serve_audio(filename):
 
 
 @app.route('/api/statistics', methods=['GET'])
+@require_auth
 def get_statistics():
-    """Get overall statistics from database"""
+    """Get user-specific statistics from database (protected)"""
     try:
-        stats = db.get_statistics()
+        stats = db.get_user_statistics(request.user_id)
         return jsonify(stats)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/calls/history', methods=['GET'])
+@require_auth
 def get_call_history():
-    """Get call history from database"""
+    """Get user-specific call history from database (protected)"""
     try:
         limit = request.args.get('limit', 50, type=int)
-        calls = db.get_all_calls(limit=limit)
+        calls = db.get_user_calls(request.user_id, limit=limit)
         return jsonify({'calls': calls, 'total': len(calls)})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
