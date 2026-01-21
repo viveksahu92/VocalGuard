@@ -89,17 +89,7 @@ export default {
       error.value = ''
       
       try {
-        const token = getToken()
-        if (!token) {
-          error.value = 'Please log in to view call history'
-          return
-        }
-        
-        const response = await fetch('http://localhost:5000/api/calls/history?limit=50', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        })
+        const response = await fetch('http://localhost:5000/api/calls/history?limit=50')
         
         const data = await response.json()
         

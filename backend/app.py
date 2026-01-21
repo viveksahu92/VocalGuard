@@ -424,6 +424,28 @@ def analyze_call():
             'auto_disconnect_recommended': auto_disconnect_recommended
         }
         
+        # Save call to database
+        try:
+            call_data_to_save = {
+                'caller_name': caller_name,
+                'caller_number': caller_number,
+                'transcript': transcript,
+                'is_scam': is_scam,
+                'confidence': confidence,
+                'threat_level': threat_level,
+                'detected_threats': detected_patterns,
+                'redacted_transcript': redacted_transcript,
+                'detected_pii': detected_pii,
+                'warning_message': warning_message,
+                'duration': data.get('duration', 0),
+                'language': detected_language
+            }
+            call_id = db.update_save_call(call_data_to_save, user_id)
+            result['call_id'] = call_id
+        except Exception as db_err:
+            print(f"Database save error: {db_err}")
+            # Continue even if save fails
+        
         # Update caller reputation in database
         caller_intelligence.update_reputation_score(caller_number, is_scam, risk_score, scam_category)
         
@@ -623,12 +645,28 @@ def get_statistics():
 
 
 @app.route('/api/calls/history', methods=['GET'])
-@require_auth
 def get_call_history():
-    """Get user-specific call history from database (protected)"""
+    """Get call history (public/generic for demo)"""
     try:
         limit = request.args.get('limit', 50, type=int)
-        calls = db.get_user_calls(request.user_id, limit=limit)
+        
+        # Check for auth optionally
+        user_id = None
+        try:
+            from auth import get_token_from_request, decode_token
+            token = get_token_from_request()
+            if token:
+                payload = decode_token(token)
+                user_id = payload.get('user_id')
+        except:
+            pass
+            
+        if user_id:
+            calls = db.get_user_calls(user_id, limit=limit)
+        else:
+            # If no user, fetch all calls (or you might want to limit this in production)
+            calls = db.get_all_calls(limit=limit)
+            
         return jsonify({'calls': calls, 'total': len(calls)})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
