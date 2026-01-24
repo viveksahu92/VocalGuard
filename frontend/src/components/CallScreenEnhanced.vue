@@ -112,8 +112,9 @@
                 </div>
 
                 <!-- Detected Threats -->
-                <div v-if="analysisResult && analysisResult.detected_threats.length > 0" class="mt-4">
+                <div v-if="analysisResult" class="mt-4">
                   <div class="flex flex-wrap gap-2 justify-center">
+                    <!-- Existing Threats -->
                     <span 
                       v-for="threat in analysisResult.detected_threats" 
                       :key="threat"
@@ -121,21 +122,103 @@
                     >
                       {{ formatThreat(threat) }}
                     </span>
+                    
+                    <!-- NEW: Real-Time Signals -->
+                    <span v-if="analysisResult.real_time_analysis?.is_synthetic" class="bg-purple-900/40 text-purple-300 text-xs px-3 py-1 rounded-full border border-purple-500/50 backdrop-blur-sm animate-pulse">
+                      🤖 SYNTHETIC VOICE
+                    </span>
+                    
+                    <span v-if="analysisResult.real_time_analysis?.background_noise === 'CALL_CENTER'" class="bg-orange-900/40 text-orange-300 text-xs px-3 py-1 rounded-full border border-orange-500/50 backdrop-blur-sm">
+                      🏢 CALL CENTER NOISE
+                    </span>
+                    
+                    <span v-if="analysisResult.real_time_analysis?.sentiment?.type === 'AGGRESSIVE'" class="bg-red-950/60 text-red-400 text-xs px-3 py-1 rounded-full border border-red-500/80 backdrop-blur-sm font-bold">
+                      😡 AGGRESSIVE TONE
+                    </span>
+                    <span v-if="analysisResult.real_time_analysis?.volume_spike" class="bg-red-600 text-white text-xs px-3 py-1 rounded-full border border-red-400 font-black animate-pulse">
+                      🔊 HIGH VOLUME
+                    </span>
+
+                    <span v-if="analysisResult.real_time_analysis?.silence_ratio > 0.8" class="bg-gray-700 text-gray-300 text-xs px-3 py-1 rounded-full border border-gray-500 backdrop-blur-sm">
+                      🔇 UNNATURAL SILENCE
+                    </span>
+
+                    <span v-if="analysisResult.real_time_analysis?.deepfake_score > 0.7" class="bg-pink-900/60 text-pink-300 text-xs px-3 py-1 rounded-full border border-pink-500/80 backdrop-blur-sm shadow-[0_0_15px_rgba(236,72,153,0.5)]">
+                      🎭 DEEPFAKE DETECTED
+                    </span>
+
+                    <span v-if="analysisResult.caller_reputation?.is_neighbor_spoof" class="bg-yellow-900/60 text-yellow-300 text-xs px-3 py-1 rounded-full border border-yellow-500/80 backdrop-blur-sm">
+                      👻 NEIGHBOR SPOOFING
+                    </span>
+
+                    <!-- Semantic Intent Badges -->
+                    <span v-if="analysisResult.detected_threats?.includes('INTENT_DATA_THEFT')" class="bg-red-600 text-white text-xs px-3 py-1 rounded-full border-2 border-red-400 font-black animate-pulse shadow-[0_0_20px_rgba(220,38,38,0.8)]">
+                      🚨 DATA THEFT ATTEMPT
+                    </span>
+
+                    <span v-if="analysisResult.detected_threats?.includes('INTENT_COERCION')" class="bg-orange-800 text-orange-200 text-xs px-3 py-1 rounded-full border border-orange-500 font-bold">
+                      👮 FAKE AUTHORITY
+                    </span>
+                  </div>
+                </div>
+
+                <!-- AI COPILOT SUGGESTION BOX (New Feature) -->
+                <div v-if="copilotSuggestion" class="mt-4 mx-4 bg-blue-900/40 border border-blue-500/50 rounded-xl p-4 animate-fade-in-up">
+                  <div class="flex items-start gap-3">
+                    <span class="text-2xl">🤖</span>
+                    <div>
+                      <p class="text-blue-200 text-xs font-bold uppercase tracking-wide mb-1">AI Copilot Suggestion</p>
+                      <p class="text-white text-lg font-medium">"{{ copilotSuggestion }}"</p>
+                    </div>
+                  </div>
+                </div>
+
+                 <!-- NEW: PAUSE PROMPT OVERLAY -->
+                <div v-if="analysisResult && analysisResult.risk_score >= 80" class="absolute inset-x-0 top-1/2 transform -translate-y-1/2 mx-4 z-50">
+                  <div class="bg-yellow-500 border-4 border-yellow-300 rounded-3xl p-6 shadow-[0_0_50px_rgba(234,179,8,0.6)] animate-bounce-slow">
+                    <div class="text-black text-center">
+                      <h1 class="text-6xl font-black mb-2 tracking-tighter">PAUSE</h1>
+                      <p class="text-xl font-bold uppercase mb-4">🖐️ STOP! DON'T PAY NOW!</p>
+                      
+                      <!-- SOS BUTTON (New Feature) -->
+                      <button @click="triggerSOS" class="w-full bg-red-600 text-white py-3 rounded-xl font-black text-lg mb-3 shadow-lg hover:bg-red-700 transition animate-pulse">
+                         🆘 SEND SOS TO FAMILY
+                      </button>
+
+                      <p class="text-sm font-medium leading-tight mb-4">High likelihood of a scam attack.</p>
+                      
+                      <div class="flex gap-2 justify-center">
+                        <button @click="generateEvidence" class="bg-gray-800 text-white px-4 py-3 rounded-full font-bold text-sm hover:bg-gray-700 transition flex items-center gap-2">
+                           📄 Evidence
+                        </button>
+                        <button @click="endCall" class="bg-black text-yellow-500 px-6 py-3 rounded-full font-bold uppercase text-sm hover:bg-gray-900 transition">
+                          Hang Up Safely
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
+              <!-- FLASHLIGHT STROBE EFFECT (Overlay) -->
+              <div v-if="analysisResult && analysisResult.risk_score >= 90" class="absolute inset-0 z-40 pointer-events-none animate-flash-strobe bg-white/20"></div>
+
               <!-- Enhanced Call Controls -->
               <div class="px-8 pb-12 bg-gradient-to-t from-gray-900/50 to-transparent">
                 <div class="grid grid-cols-3 gap-6 mb-8">
-                  <!-- Mute Button -->
-                  <button class="flex flex-col items-center gap-2 text-gray-400 hover:text-white transition">
-                    <div class="w-16 h-16 bg-gradient-to-br from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 rounded-full flex items-center justify-center transition transform hover:scale-110 shadow-lg">
-                      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                      </svg>
+                  <!-- Microphone Button (Active) -->
+                  <button 
+                    @click="toggleMicrophone"
+                    class="flex flex-col items-center gap-2 transition"
+                    :class="isListening ? 'text-red-400' : 'text-gray-400 hover:text-white'"
+                  >
+                    <div 
+                        class="w-16 h-16 rounded-full flex items-center justify-center transition transform hover:scale-110 shadow-lg"
+                        :class="isListening ? 'bg-red-500/20 border-2 border-red-500 animate-pulse' : 'bg-gradient-to-br from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700'"
+                    >
+                      <span class="text-2xl">{{ isListening ? '🎙️' : '🎤' }}</span>
                     </div>
-                    <span class="text-xs">mute</span>
+                    <span class="text-xs">{{ isListening ? 'Listening' : 'Speak' }}</span>
                   </button>
 
                   <!-- Keypad Button -->
@@ -208,7 +291,7 @@ export default {
       default: null
     }
   },
-  emits: ['call-analyzed'],
+  emits: ['call-analyzed', 'call-ended'],
   
   setup(props, { emit }) {
     const currentTime = ref('9:41')
@@ -288,8 +371,17 @@ export default {
       if (durationInterval) {
         clearInterval(durationInterval)
       }
+      
+      if (recognition.value) {
+        recognition.value.stop()
+        isListening.value = false
+      }
+      
       callStatus.value = 'Call Ended'
-      alert('Call ended. VocalGuard analysis ' + (analysisResult.value?.is_scam ? 'detected a scam!' : 'found no threats.'))
+      
+      setTimeout(() => {
+        emit('call-ended')
+      }, 1000)
     }
 
     // Analyze call
@@ -346,16 +438,145 @@ export default {
       }
     }
 
+    // Web Speech API Setup
+    const recognition = ref(null)
+    const isListening = ref(false)
+    let analysisTimer = null
+
+    // Initialize Speech Recognition
+    const initSpeechRecognition = () => {
+      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+        recognition.value = new SpeechRecognition()
+        recognition.value.continuous = true
+        recognition.value.interimResults = true
+        
+        recognition.value.onresult = (event) => {
+          let interimTranscript = ''
+          let finalTranscript = ''
+          
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+              finalTranscript += event.results[i][0].transcript
+            } else {
+              interimTranscript += event.results[i][0].transcript
+            }
+          }
+          
+          // Update transcript (append new text)
+          if (finalTranscript) {
+            transcript.value += ' ' + finalTranscript
+            // Trigger auto-analysis on new sentences
+            debouncedAnalyze()
+          }
+        }
+        
+        recognition.value.onerror = (event) => {
+          console.error('Speech recognition error', event.error)
+          isListening.value = false
+        }
+        
+        recognition.value.onend = () => {
+          if (isListening.value) {
+             // Restart if supposed to be listening (persistent)
+             try { recognition.value.start() } catch (e) {}
+          }
+        }
+      } else {
+        alert('Web Speech API is not supported in this browser. Try Chrome.')
+      }
+    }
+
+    // Toggle Microphone
+    const toggleMicrophone = () => {
+      if (!recognition.value) initSpeechRecognition()
+      
+      if (isListening.value) {
+        recognition.value.stop()
+        isListening.value = false
+      } else {
+        transcript.value = '' // Clear previous demo text on start
+        recognition.value.start()
+        isListening.value = true
+        callStatus.value = '🎙️ Listening...'
+      }
+    }
+    
+    // Auto-analyze with debounce
+    let debounceTimer = null
+    const debouncedAnalyze = () => {
+        clearTimeout(debounceTimer)
+        debounceTimer = setTimeout(() => {
+            analyzeCall()
+        }, 2000) // Analyze 2 seconds after speaking stops
+    }
+
+    // AI Copilot Logic
+    const copilotSuggestion = computed(() => {
+        if (!analysisResult.value?.detected_threats) return null
+        
+        const threats = analysisResult.value.detected_threats
+        
+        if (threats.includes('INTENT_DATA_THEFT')) {
+            return "Say: 'I will not share confidential information over the phone.'"
+        }
+        if (threats.includes('INTENT_COERCION')) {
+            return "Say: 'I am going to the local police station to verify this personally.'"
+        }
+        if (threats.includes('INTENT_FRAUD_LURE')) {
+            return "Say: 'I do not pay fees to claim prizes. Please remove me from your list.'"
+        }
+        if (threats.includes('urgency')) {
+            return "Say: 'I need to consult with my family first. I am hanging up.'"
+        }
+        
+        return null
+    })
+
+    // Add SOS Trigger
+    const triggerSOS = () => {
+        alert('🚨 SOS SENT!\n\nLocation shared with:\n- Mom (+1 555-0199)\n- Dad (+1 555-0100)\n\n"Help! Suspicious call detected."')
+    }
+
     onMounted(() => {
       updateTime()
       setInterval(updateTime, 60000)
       startCall()
+      console.log('📱 VocalGuard Mobile Ready')
     })
 
+    // Generate Evidence Report
+    const generateEvidence = async () => {
+        try {
+            const response = await fetch('/api/generate_evidence', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    transcript: transcript.value,
+                    risk_score: analysisResult.value?.risk_score || 0,
+                    detected_threats: analysisResult.value?.detected_threats || [],
+                    caller_number: callerNumber.value
+                })
+            })
+            const data = await response.json()
+            if (data.status === 'success') {
+                alert(`✅ Evidence Secured!\n\nReport saved to:\n${data.filename}\n\n(This file can be sent to police)`)
+            }
+        } catch (e) {
+            console.error('Evidence generation failed', e)
+        }
+    }
+
+    return {
+        // ... existing returns ...
+        currentTime, callStatus, callerName, callerNumber, callDuration, transcript, privacyMode, isAnalyzing, analysisResult, displayTranscript, togglePrivacy, formatThreat, endCall, analyzeCall, toggleMicrophone, isListening,
+        // New exports
+        copilotSuggestion, triggerSOS, generateEvidence
+    }
+
     onUnmounted(() => {
-      if (durationInterval) {
-        clearInterval(durationInterval)
-      }
+      if (durationInterval) clearInterval(durationInterval)
+      if (recognition.value) recognition.value.stop()
     })
 
     return {
@@ -372,7 +593,9 @@ export default {
       togglePrivacy,
       formatThreat,
       endCall,
-      analyzeCall
+      analyzeCall,
+      toggleMicrophone,
+      isListening
     }
   }
 }
@@ -404,5 +627,22 @@ export default {
 
 .animate-float {
   animation: float 6s ease-in-out infinite;
+}
+@keyframes flash-strobe {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-flash-strobe {
+  animation: flash-strobe 0.2s infinite;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out forwards;
 }
 </style>

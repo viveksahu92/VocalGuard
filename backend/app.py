@@ -318,7 +318,7 @@ def analyze_call():
             return jsonify({'error': 'Transcript is required'}), 400
         
         # === FEATURE 1: Dynamic Risk Scoring ===
-        risk_score, detected_patterns, threat_level = advanced_detector.calculate_risk_score(
+        risk_score, detected_patterns, threat_level, sentiment, bg_noise, is_synthetic, deepfake_score, volume_spike, silence_ratio = advanced_detector.calculate_risk_score(
             transcript, caller_number, call_time
         )
         
@@ -327,7 +327,9 @@ def analyze_call():
         risk_score += voice_analysis['total_voice_risk_score']
         
         # === FEATURE 3: Caller Reputation Check ===
-        reputation_data = caller_intelligence.check_number_reputation(caller_number)
+        # In a real app, we'd get the user's phone number from their profile
+        user_phone_number = "+1555" # Dummy for neighbor spoofing demo
+        reputation_data = caller_intelligence.check_number_reputation(caller_number, user_phone_number)
         risk_score += reputation_data['risk_modifier']
         
         # === FEATURE 4: Threat Intelligence Matching ===
@@ -365,7 +367,11 @@ def analyze_call():
         detected_language = advanced_detector.detect_language(transcript)
         
         # === Generate insights ===
-        insights = advanced_detector.generate_insights(transcript, risk_score, threat_level)
+        insights = advanced_detector.generate_insights(
+            transcript, risk_score, threat_level, 
+            sentiment=sentiment, bg_noise=bg_noise, is_synthetic=is_synthetic,
+            deepfake_score=deepfake_score, volume_spike=volume_spike, silence_ratio=silence_ratio
+        )
         
         # === Determine if scam ===
         is_scam = risk_score >= 40
@@ -399,6 +405,16 @@ def analyze_call():
                 'emotional_manipulation': voice_analysis['emotional_manipulation']['emotion_manipulation_detected'],
                 'dominant_emotion': voice_analysis['emotional_manipulation']['dominant_emotion'],
                 'call_center_detected': voice_analysis['background_environment']['call_center_detected']
+            },
+            
+            # NEW: Real-time Analysis Data
+            'real_time_analysis': {
+                'sentiment': sentiment,
+                'background_noise': bg_noise,
+                'is_synthetic': is_synthetic,
+                'deepfake_score': deepfake_score,
+                'volume_spike': volume_spike,
+                'silence_ratio': silence_ratio
             },
             
             'caller_reputation': {
@@ -796,6 +812,25 @@ def check_reputation_api(phone_number):
         return jsonify({'success': True,' reputation': reputation})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+# === FEATURE: Evidence Report Generation ===
+from evidence_generator import EvidenceGenerator
+evidence_gen = EvidenceGenerator()
+
+@app.route('/api/generate_evidence', methods=['POST'])
+def generate_report():
+    try:
+        data = request.json
+        report_path = evidence_gen.generate_report(data)
+        return jsonify({
+            "status": "success",
+            "message": "Evidence Report Generated",
+            "report_path": report_path,
+            "filename": os.path.basename(report_path)
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == '__main__':

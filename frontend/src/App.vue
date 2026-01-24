@@ -106,6 +106,7 @@
             v-if="currentTab === 'call'"
             :selectedScenario="selectedScenario"
             @call-analyzed="handleCallAnalyzed"
+            @call-ended="currentTab = 'scenarios'"
           />
           <ScenarioSelector 
             v-else-if="currentTab === 'scenarios'"
