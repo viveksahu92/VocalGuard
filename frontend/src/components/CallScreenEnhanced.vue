@@ -8,7 +8,8 @@
           <!-- iPhone Frame with 3D Effect -->
           <div class="relative">
             <!-- 3D Shadow & Depth -->
-            <div class="absolute inset-0 bg-gradient-to-b from-purple-500/30 to-blue-500/30 rounded-[3.5rem] blur-2xl transform -translate-z-10"></div>
+            <!-- 3D Shadow & Depth (Removed for visual clarity) -->
+            <!-- <div class="absolute inset-0 bg-gradient-to-b from-purple-500/30 to-blue-500/30 rounded-[3.5rem] blur-2xl transform -translate-z-10"></div> -->
             
             <!-- Main Phone Frame -->
             <div class="relative bg-gradient-to-b from-gray-900 to-gray-800 rounded-[3rem] shadow-2xl overflow-hidden border-8 border-gray-950 backdrop-blur-sm">
@@ -36,7 +37,7 @@
 
                 <!-- Call Duration -->
                 <div class="mt-8 mb-6">
-                  <p class="text-white text-5xl font-light tracking-wider drop-shadow-lg">{{ callDuration }}</p>
+                  <p class="text-white text-5xl font-light tracking-wider drop-shadow-lg relative z-50">{{ callDuration }}</p>
                 </div>
 
                 <!-- Enhanced Risk Score Display -->
@@ -567,12 +568,7 @@ export default {
         }
     }
 
-    return {
-        // ... existing returns ...
-        currentTime, callStatus, callerName, callerNumber, callDuration, transcript, privacyMode, isAnalyzing, analysisResult, displayTranscript, togglePrivacy, formatThreat, endCall, analyzeCall, toggleMicrophone, isListening,
-        // New exports
-        copilotSuggestion, triggerSOS, generateEvidence
-    }
+
 
     onUnmounted(() => {
       if (durationInterval) clearInterval(durationInterval)
@@ -595,30 +591,17 @@ export default {
       endCall,
       analyzeCall,
       toggleMicrophone,
-      isListening
+      isListening,
+      copilotSuggestion,
+      triggerSOS,
+      generateEvidence
     }
   }
 }
 </script>
 
 <style scoped>
-.overflow-y-auto::-webkit-scrollbar {
-  width: 6px;
-}
 
-.overflow-y-auto::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 10px;
-}
-
-.overflow-y-auto::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #8b5cf6, #3b82f6);
-  border-radius: 10px;
-}
-
-.overflow-y-auto::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #a78bfa, #60a5fa);
-}
 
 @keyframes float {
   0%, 100% { transform: translateY(0px); }

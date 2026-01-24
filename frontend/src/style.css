@@ -1,3 +1,59 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Defensive Reset for Z-Index Stacking */
+#app {
+  isolation: isolate;
+  /* Create a new stacking context for the entire app */
+}
+
+/* Ensure text is always readable and above low-level artifacts */
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+span,
+li,
+a,
+button {
+  position: relative;
+  z-index: 1;
+  /* Force content above base layer */
+}
+
+/* Fix potential font rendering artifacts */
+* {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Hide unknown fixed pseudo-elements that might check spelling/grammar */
+/* Note: This is aggressive but necessary if extensions are injecting overlays */
+grammarly-extension,
+[data-grammarly-part],
+div[style*="position: fixed"][style*="background-color: rgb(59, 130, 246)"],
+/* Blue-500 fixed blobs */
+div[style*="position: fixed"][style*="background-color: #3b82f6"] {
+  display: none !important;
+}
+
+/* GLOBAL SCROLLBAR NUKE: Force hidden to rule out artifacts */
+::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: transparent;
+  display: none;
+}
+
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}

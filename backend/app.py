@@ -272,8 +272,18 @@ def google_auth():
         return jsonify({'error': 'Google authentication failed'}), 500
 
 
-@app.route('/analyze', methods=['POST'])
+@app.route('/api/analyze', methods=['GET', 'POST'])
 def analyze_call():
+    if request.method == 'GET':
+        return jsonify({
+            'error': 'Method Not Allowed',
+            'message': 'This endpoint requires a POST request with a transcript payload.', 
+            'example_payload': {
+                'transcript': 'Hello, this is a call...',
+                'caller_number': '+15550000000'
+            }
+        }), 405
+        
     """
     ENHANCED v2.0: Analyze call transcript with ALL NEW FEATURES
     Now supports optional authentication to save calls to user account
@@ -757,7 +767,7 @@ def generate_report():
 
 # === NEW API ENDPOINTS ===
 
-@app.route('/api/report', methods=['POST'])
+@app.route('/api/submit_scam_report', methods=['POST'])
 def report_scam():
     """Community scam reporting"""
     try:
@@ -819,7 +829,7 @@ from evidence_generator import EvidenceGenerator
 evidence_gen = EvidenceGenerator()
 
 @app.route('/api/generate_evidence', methods=['POST'])
-def generate_report():
+def generate_evidence_report():
     try:
         data = request.json
         report_path = evidence_gen.generate_report(data)
@@ -831,6 +841,77 @@ def generate_report():
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+# === MISSING ENDPOINTS FIXES ===
+
+@app.route('/api', methods=['GET'])
+def api_root():
+    """API Root Documentation"""
+    return jsonify({
+        'name': 'VocalGuard API',
+        'version': '1.0.0',
+        'status': 'operational',
+        'endpoints': [
+            '/api/analyze',
+            '/api/auth/login',
+            '/api/calls/history'
+        ]
+    })
+
+# Alias for /api/v1/analyze -> /api/analyze
+@app.route('/api/v1/analyze', methods=['POST'])
+def analyze_v1():
+    return analyze_call()
+
+# Alias for /api/calls to match REST standards
+@app.route('/api/calls', methods=['GET'])
+def get_calls_alias():
+    return get_call_history()
+
+# Missing /api/scenarios endpoint (Mock data)
+@app.route('/api/scenarios', methods=['GET'])
+def get_scenarios():
+    return jsonify({
+        'scenarios': [
+            {
+                'id': 'irs_scam',
+                'name': 'IRS Tax Scam',
+                'transcript': "This is Officer John Smith from the IRS. We have a warrant for your arrest due to unpaid taxes. You must pay immediately via gift cards.",
+                'caller': 'Officer John Smith',
+                'number': '+1 (202) 555-0123'
+            },
+            {
+                'id': 'tech_support',
+                'name': 'Tech Support Virus',
+                'transcript': "Hello, this is Microsoft Support. Your computer has a virus. Please download our remote access tool so we can fix it for $200.",
+                'caller': 'Microsoft Support',
+                'number': '+1 (800) 555-0199'
+            },
+             {
+                'id': 'grandparent',
+                'name': 'Grandchild Emergency',
+                'transcript': "Grandma? It's me. I'm in trouble. I got arrested in Mexico and I need bail money fast. Please don't tell mom.",
+                'caller': 'Grandson (Fake)',
+                'number': '+1 (555) 010-0200'
+            }
+        ]
+    })
+
+# Global Error Handlers for JSON responses
+@app.errorhandler(404)
+def not_found(e):
+    return jsonify({'error': 'Not Found', 'message': 'The requested endpoint does not exist.'}), 404
+
+@app.errorhandler(405)
+def method_not_allowed(e):
+    return jsonify({'error': 'Method Not Allowed', 'message': 'The method is not allowed for the requested URL.'}), 405
+
+@app.errorhandler(500)
+def server_error(e):
+    return jsonify({'error': 'Internal Server Error', 'message': str(e)}), 500
+
+
 
 
 if __name__ == '__main__':

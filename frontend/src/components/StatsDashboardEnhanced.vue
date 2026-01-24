@@ -431,22 +431,4 @@ export default {
 }
 </script>
 
-<style scoped>
-.overflow-y-auto::-webkit-scrollbar {
-  width: 6px;
-}
 
-.overflow-y-auto::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 10px;
-}
-
-.overflow-y-auto::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #8b5cf6, #3b82f6);
-  border-radius: 10px;
-}
-
-.overflow-y-auto::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #a78bfa, #60a5fa);
-}
-</style>

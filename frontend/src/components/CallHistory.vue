@@ -7,7 +7,7 @@
         :disabled="loading"
         class="text-blue-600 hover:text-blue-700 text-sm font-medium hover:bg-blue-50 px-3 py-1 rounded-lg transition-colors disabled:opacity-50"
       >
-        {{ loading ? 'Loading...' : '🔄 Refresh' }}
+        {{ loading ? 'Updating...' : '🔄 Reload' }}
       </button>
     </div>
     

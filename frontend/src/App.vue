@@ -9,6 +9,10 @@
       />
     </template>
 
+    <template v-else-if="currentView === 'not-found'">
+      <NotFound @gohome="handleGoHome" />
+    </template>
+
     <template v-else-if="currentView === 'learn'">
       <div class="min-h-screen flex flex-col">
         <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-sm">
@@ -34,6 +38,20 @@
           </div>
         </nav>
         <PrivacyPolicy @close="currentView = 'landing'" />
+      </div>
+    </template>
+
+    <template v-else-if="currentView === 'terms'">
+      <div class="min-h-screen flex flex-col">
+        <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-sm">
+          <div class="max-w-7xl mx-auto px-4 h-16 flex items-center">
+            <div class="flex items-center cursor-pointer" @click="currentView = 'landing'">
+              <span class="text-2xl mr-2">🛡️</span>
+              <h1 class="text-xl font-bold text-slate-900">VocalGuard</h1>
+            </div>
+          </div>
+        </nav>
+        <TermsOfService @close="currentView = 'landing'" />
       </div>
     </template>
 
@@ -127,7 +145,7 @@
           <p class="text-slate-500 text-sm">
             © 2026 VocalGuard • Built for Nexora Hacks • 
             <button @click="currentView = 'privacy'" class="text-blue-600 hover:underline">Privacy Policy</button> • 
-            <a href="#" class="text-blue-600 hover:underline">Terms</a>
+            <button @click="currentView = 'terms'" class="text-blue-600 hover:underline">Terms</button>
           </p>
         </div>
       </footer>
@@ -147,6 +165,8 @@ import CallScreenEnhanced from './components/CallScreenEnhanced.vue'
 import ScenarioSelector from './components/ScenarioSelector.vue'
 import CallHistory from './components/CallHistory.vue'
 import StatsDashboardEnhanced from './components/StatsDashboardEnhanced.vue'
+import TermsOfService from './components/TermsOfService.vue'
+import NotFound from './components/NotFound.vue'
 
 export default {
   name: 'App',
@@ -159,7 +179,9 @@ export default {
     CallScreenEnhanced,
     ScenarioSelector,
     CallHistory,
-    StatsDashboardEnhanced
+    StatsDashboardEnhanced,
+    TermsOfService,
+    NotFound
   },
   
   setup() {
@@ -205,9 +227,36 @@ export default {
       currentTab.value = 'call'
     }
     
+
+
+    const handleGoHome = () => {
+      window.history.pushState({}, '', '/')
+      currentView.value = 'landing'
+    }
+    
     // Check authentication on mount
     onMounted(async () => {
       await checkAuth()
+      
+      // Simple client-side router
+      let path = window.location.pathname
+      // Normalize path: remove trailing slash and weird casing if needed
+      if (path.length > 1 && path.endsWith('/')) {
+        path = path.slice(0, -1)
+      }
+      
+      const lowerPath = path.toLowerCase()
+      
+      if (lowerPath === '/test-scenarios') {
+        currentView.value = 'app'
+        currentTab.value = 'scenarios'
+      } else if (lowerPath === '/terms') {
+        currentView.value = 'terms'
+      } else if (lowerPath === '/privacy') {
+        currentView.value = 'privacy'
+      } else if (lowerPath !== '/' && lowerPath !== '/index.html' && lowerPath !== '/vocalguard') {
+        currentView.value = 'not-found'
+      }
     })
 
     return {
@@ -223,7 +272,8 @@ export default {
       handleScenarioSelected,
       handleCallAnalyzed,
       handleAuthSuccess,
-      handleLogout
+      handleLogout,
+      handleGoHome
     }
   }
 }

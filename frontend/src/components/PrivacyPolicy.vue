@@ -4,7 +4,7 @@
       <h1 class="text-3xl font-bold text-slate-900 mb-6">Privacy Policy</h1>
       <p class="text-slate-500 text-sm mb-8">Last updated: January 19, 2026</p>
       
-      <div class="prose prose-slate max-w-none text-slate-600">
+      <div class="prose prose-slate max-w-none text-slate-600 relative z-50">
         <p class="mb-6">
           At VocalGuard, we take your privacy seriously. This Privacy Policy explains how we collect, use, and protect your information when you use our scam detection services.
         </p>

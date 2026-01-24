@@ -3,7 +3,7 @@
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
       <h1 class="text-3xl font-bold text-slate-900 mb-6">About VocalGuard</h1>
       
-      <div class="prose prose-slate max-w-none text-slate-600">
+      <div class="prose prose-slate max-w-none text-slate-600 relative z-50">
         <p class="text-lg leading-relaxed mb-6">
           VocalGuard is an advanced AI-powered application designed to protect users from the rising tide of sophisticated voice scams. Using state-of-the-art machine learning, we analyze conversation patterns in real-time to detect threats before they result in financial loss.
         </p>
