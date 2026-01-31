@@ -17,29 +17,37 @@ class AdvancedScamDetector:
                 'keywords': [
                     'immediately', 'urgent', 'now', 'right now', 'hurry', 'asap', 'today', 
                     'within 24 hours', 'limited time', 'act now', 'dont wait', 'before its too late',
-                    'time sensitive', 'expire', 'last chance', 'final notice'
+                    'time sensitive', 'expire', 'last chance', 'final notice', 'in a hurry',
+                    'right away', 'this moment', 'quickly', 'soon', 'no time', 'time running out',
+                    'must act', 'cant wait', 'do it now', 'immediate action', 'do this now'
                 ], 
-                'weight': 0.18
+                'weight': 0.22
             },
             'payment_request': {
                 'keywords': [
-                    'wire', 'gift card', 'bitcoin', 'cryptocurrency', 'itunes', 'google play',
+                    'wire', 'wire transfer', 'gift card', 'bitcoin', 'cryptocurrency', 'itunes', 'google play',
                     'moneygram', 'western union', 'paypal', 'venmo', 'zelle', 'cashapp', 'cash app',
                     'prepaid card', 'reload pack', 'send money', 'transfer', 'pay', 'payment',
-                    'deposit', 'bank account', 'routing number', '$', 'dollar', 'fee', 'charge'
+                    'deposit', 'bank account', 'routing number', '$', 'dollar', 'fee', 'charge',
+                    'amount', 'money', 'cash', 'funds', 'payment method', 'credit', 'debit',
+                    'atm', 'bank account number', 'swift', 'iban', 'buy cards', 'purchase',
+                    'e-gift', 'reload', 'put money', 'send funds', 'direct deposit'
                 ], 
-                'weight': 0.22
+                'weight': 0.25
             },
             'personal_info': {
                 'keywords': [
                     'ssn', 'social security', 'password', 'credit card', 'debit card', 'cvv', 'pin',
                     'account number', 'routing number', 'mothers maiden', 'date of birth', 'dob',
                     'verify your', 'confirm your', 'update your', 'provide your', 'give me your',
-                    'share your', 'license number', 'passport',
-                    # CRITICAL BANKING TERMS - High Weight
-                    'atm pin', 'card pin', 'banking pin', 'secret code', 'atm password'
+                    'share your', 'license number', 'passport', 'atm pin', 'card pin', 'banking pin',
+                    'secret code', 'atm password', 'otp', 'one time password', 'code', 'code on card',
+                    'digits', 'number on back', 'cvc', 'cvv2', 'security code', 'expiration',
+                    'cardholder name', 'read me', 'tell me', 'what is', 'where is', 'give',
+                    'tell', 'provide', 'confirm', 'verify', 'validate', 'authenticate',
+                    'net banking', 'online banking', 'banking password', 'access code'
                 ], 
-                'weight': 0.50 # CRITICAL: Was 0.22, increased to ensure red zone
+                'weight': 0.55
             },
             'impersonation': {
                 'keywords': [
@@ -47,40 +55,51 @@ class AdvancedScamDetector:
                     'bank', 'wells fargo', 'chase', 'security department', 'fraud department',
                     'social security', 'ssa', 'medicare', 'medicaid', 'government', 'federal',
                     'sheriff', 'police', 'officer', 'agent', 'tech support', 'customer service',
-                    'refund department'
+                    'refund department', 'paypal', 'ebay', 'walmart', 'best buy', 'calling from',
+                    'representative', 'specialist', 'department', 'official', 'calling about',
+                    'i am from', 'this is from', 'behalf of', 'on behalf'
                 ], 
-                'weight': 0.20
+                'weight': 0.24
             },
             'threats': {
                 'keywords': [
                     'arrest', 'arrested', 'lawsuit', 'legal action', 'warrant', 'prosecution',
                     'jail', 'prison', 'court', 'suspended', 'frozen', 'shut off', 'disconnect',
-                    'terminated', 'criminal', 'charges', 'penalty', 'fine', 'consequences'
+                    'terminated', 'criminal', 'charges', 'penalty', 'fine', 'consequences',
+                    'close account', 'block account', 'cancel', 'revoke', 'deactivate',
+                    'police', 'officer', 'federal agent', 'law enforcement', 'legal',
+                    'action', 'serious', 'trouble', 'problem', 'virus', 'hacked', 'compromised',
+                    'malware', 'infected', 'security breach', 'danger', 'risk'
                 ], 
-                'weight': 0.20
+                'weight': 0.24
             },
             'too_good_to_be_true': {
                 'keywords': [
                     'prize', 'lottery', 'won', 'winner', 'congratulations', 'selected', 'qualified',
                     'free', 'guaranteed', 'risk-free', 'double your money', 'triple', 'opportunity',
-                    'limited spots', 'exclusive', 'claim your', 'youve been chosen'
+                    'limited spots', 'exclusive', 'claim your', 'youve been chosen', 'you won',
+                    'inherited', 'inheritance', 'money waiting', 'refund', 'bonus', 'reward',
+                    'free money', 'extra cash', 'easy money', 'low rate', 'reduce debt'
                 ], 
-                'weight': 0.15
+                'weight': 0.18
             },
             'emotional_manipulation': {
                 'keywords': [
                     'love you', 'darling', 'sweetheart', 'honey', 'baby', 'help me', 'need you',
                     'trust me', 'promise', 'dont tell', 'secret', 'emergency', 'accident',
-                    'hospital', 'stuck', 'stranded', 'scared', 'trouble', 'crisis'
+                    'hospital', 'stuck', 'stranded', 'scared', 'trouble', 'crisis', 'desperate',
+                    'help', 'please', 'save me', 'sick', 'injured', 'afraid', 'worried'
                 ], 
-                'weight': 0.20
+                'weight': 0.22
             },
             'remote_access': {
                 'keywords': [
                     'remote access', 'anydesk', 'teamviewer', 'remote desktop', 'screenshare',
-                    'download', 'install', 'click on', 'go to website', 'type in', 'enter this code'
+                    'download', 'install', 'click on', 'go to website', 'type in', 'enter this code',
+                    'link', 'url', 'website', 'software', 'program', 'application',
+                    'screen share', 'share screen', 'allow access', 'give access'
                 ], 
-                'weight': 0.18
+                'weight': 0.22
             }
         }
     
@@ -97,11 +116,15 @@ class AdvancedScamDetector:
                 match_ratio = min(matches / len(pattern_data['keywords']), 1.0)
                 pattern_score = match_ratio * pattern_data['weight']
                 
-                # BOOST scores for multiple keyword matches
+                # BOOST scores for multiple keyword matches - ENHANCED
                 if matches >= 2:
-                    pattern_score *= 1.5
+                    pattern_score *= 1.8  # Increased from 1.5
                 if matches >= 3:
-                    pattern_score *= 1.8
+                    pattern_score *= 2.0  # Increased from 1.8
+                if matches >= 4:
+                    pattern_score *= 2.2
+                if matches >= 5:
+                    pattern_score *= 2.4
                     
                 total_score += pattern_score
                 detected_patterns.append(pattern_type)
@@ -170,51 +193,57 @@ class AdvancedScamDetector:
         
         # 4+ patterns = high risk
         if pattern_count >= 4:
-            combination_bonus += 0.30
+            combination_bonus += 0.35  # Increased from 0.30
             
         # 5+ patterns = extreme risk
         if pattern_count >= 5:
-            combination_bonus += 0.35
+            combination_bonus += 0.45  # Increased from 0.35
         
 
-        # Check for specific dangerous combos
+        # Check for specific dangerous combos - ENHANCED
         if 'impersonation' in detected_patterns and 'threats' in detected_patterns:
-            combination_bonus += 0.20  # Authority + threat = classic scam
+            combination_bonus += 0.25  # Increased from 0.20
         
         if 'payment_request' in detected_patterns and 'urgency' in detected_patterns:
-            combination_bonus += 0.20  # Payment + urgency = pressure scam
+            combination_bonus += 0.25  # Increased from 0.20
             
         if 'personal_info' in detected_patterns and 'threats' in detected_patterns:
-            combination_bonus += 0.15  # Info harvesting + threats
+            combination_bonus += 0.25  # Increased from 0.15
+            
+        if 'personal_info' in detected_patterns and 'urgency' in detected_patterns:
+            combination_bonus += 0.25  # NEW: Very dangerous combo
+            
+        if 'impersonation' in detected_patterns and 'payment_request' in detected_patterns:
+            combination_bonus += 0.20  # NEW: Authority demanding payment
         
         total_score += combination_bonus
         
         # New Feature: Sentiment Analysis
         sentiment = self.analyze_sentiment(transcript)
         if sentiment['type'] == 'AGGRESSIVE':
-            total_score += 0.15
+            total_score += 0.20  # Increased from 0.15
         elif sentiment['type'] == 'PANIC':
-            total_score += 0.10
+            total_score += 0.18  # Increased from 0.10
             
         # New Feature: Synthetic Voice Detection (Simulated)
         is_synthetic = self.detect_synthetic_voice(transcript)
         if is_synthetic:
-            total_score += 0.10
+            total_score += 0.15  # Increased from 0.10
         
         # New Feature: Background Noise (Simulated)
         bg_noise = self.classify_background(transcript)
         if bg_noise == 'CALL_CENTER':
-            total_score += 0.10
+            total_score += 0.15  # Increased from 0.10
 
         # New Feature: Deepfake Artifacts (Simulated)
         deepfake_score = self.detect_deepfake_artifacts(transcript)
         if deepfake_score > 0.7:
-            total_score += 0.20
+            total_score += 0.25  # Increased from 0.20
             
         # New Feature: Volume Spike (Simulated via keyword 'SHOUTING')
         volume_spike = self.detect_volume_spike(transcript)
         if volume_spike:
-            total_score += 0.15
+            total_score += 0.20  # Increased from 0.15
             
         # New Feature: Silence Ratio
         silence_ratio = self.analyze_silence_ratio(transcript)

@@ -22,7 +22,9 @@ class ScamDetector:
             'email': r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}',
             'zip_code': r'\d{5}(?:-\d{4})?',
             'bank_account': r'\d{8,17}',
-            'cvv': r'\d{3,4}'
+            'cvv': r'\d{3,4}',
+            'passport': r'[A-Z]{2}\d{7}',
+            'drivers_license': r'\d{5,8}'
         }
         
         # EXPANDED Multi-language scam keywords (English + transliterated common scams)
@@ -63,7 +65,14 @@ class ScamDetector:
                 'card number', 'expiration date', 'security question',
                 'verify your identity', 'confirm your account', 'validate account',
                 'access code', 'verification code', 'otp', 'one time password',
-                'remote access', 'anydesk', 'teamviewer', 'screen share'
+                'remote access', 'anydesk', 'teamviewer', 'screen share',
+                # ENHANCED: More specific requesting phrases
+                'give me your', 'provide me', 'send me your', 'read me',
+                'tell me the', 'what is your', 'what are the', 'where is your',
+                'atm pin', 'card pin', 'banking pin', 'secret code',
+                'net banking password', 'online banking password',
+                'code on card', 'numbers on back', 'back of card',
+                'cvv number', 'cvc number', 'three digit', 'four digit code'
             ],
             'impersonation': [
                 # Government
@@ -92,7 +101,12 @@ class ScamDetector:
                 'police', 'law enforcement', 'federal agent', 'legal consequences',
                 'penalties', 'fines', 'seize', 'confiscate', 'revoke',
                 'terminate', 'cancellation', 'suspended license', 'deportation',
-                'virus detected', 'hacked', 'breach', 'malware', 'infected'
+                'virus detected', 'hacked', 'breach', 'malware', 'infected',
+                # ENHANCED: More specific threat phrases
+                'going to', 'will be', 'face charges', 'face jail', 'federal crimes',
+                'guilty', 'liable', 'damages', 'civil suit', 'criminal prosecution',
+                'shut down', 'disable', 'lock', 'block', 'close your account',
+                'service terminated', 'passport revoked', 'license suspended'
             ],
             'too_good': [
                 'won', 'winner', 'congratulations', 'prize', 'lottery',
