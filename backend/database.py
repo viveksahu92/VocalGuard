@@ -3,6 +3,7 @@ VocalGuard Database Module
 Persistent storage for call analysis and user data
 """
 
+import os
 import sqlite3
 import json
 from datetime import datetime
@@ -10,9 +11,27 @@ from pathlib import Path
 
 class VocalGuardDB:
     """SQLite database for VocalGuard"""
-    
-    def __init__(self, db_path='vocalguard.db'):
-        self.db_path = db_path
+
+    def __init__(self, db_path: str | None = None):
+        """
+        Initialise the database.
+
+        The resolved path priority is:
+          1. ``db_path`` argument (explicit override, useful in tests)
+          2. ``DB_PATH`` environment variable
+          3. A ``vocalguard.db`` file placed next to *this* module
+             (i.e. inside the ``backend/`` directory, **not** the repo root)
+
+        Keeping the file inside ``backend/`` and covered by ``.gitignore``
+        ensures it is never accidentally committed.  See issue #2.
+        """
+        if db_path is not None:
+            self.db_path = db_path
+        elif os.getenv("DB_PATH"):
+            self.db_path = os.getenv("DB_PATH")
+        else:
+            # Default: sit next to this file so it stays inside backend/
+            self.db_path = str(Path(__file__).parent / "vocalguard.db")
         self.init_db()
     
     def init_db(self):
