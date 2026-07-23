@@ -8,11 +8,12 @@ import sqlite3
 import json
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 
 class VocalGuardDB:
     """SQLite database for VocalGuard"""
 
-    def __init__(self, db_path: str | None = None):
+    def __init__(self, db_path: Optional[str] = None):
         """
         Initialise the database.
 
