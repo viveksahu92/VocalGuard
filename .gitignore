@@ -61,6 +61,25 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 
+# SQLite / VocalGuard database files
+# The vocalguard.db file holds real app data (users, call transcripts, PII).
+# It must NEVER be committed to version control.
+# See: https://github.com/viveksahu92/VocalGuard/issues/2
+vocalguard.db
+vocalguard.db-journal
+vocalguard.db-shm
+vocalguard.db-wal
+backend/vocalguard.db
+backend/vocalguard.db-journal
+backend/vocalguard.db-shm
+backend/vocalguard.db-wal
+
+# General SQLite database rule (catch any *.db files in the project)
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
 # Flask stuff:
 instance/
 .webassets-cache

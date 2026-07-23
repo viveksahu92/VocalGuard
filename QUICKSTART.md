@@ -22,6 +22,10 @@ cp .env.example .env
 # Edit .env file and add your API keys:
 # OPENAI_API_KEY=your_actual_key_here
 # ELEVENLABS_API_KEY=your_actual_key_here
+
+# Initialise the local database (creates backend/vocalguard.db)
+# This file is excluded from git — never commit it.  See issue #2.
+python db_init.py
 ```
 
 ### Step 2: Frontend Setup
